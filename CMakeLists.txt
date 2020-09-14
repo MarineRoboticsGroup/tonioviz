@@ -5,11 +5,11 @@ project(tonioviz)
 set(CMAKE_CXX_STANDARD 17)
 
 # External package dependencies.
+find_package(GTSAM REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
-find_package(cpp-toolbox REQUIRED)
+# find_package(cpp-toolbox REQUIRED)
 find_package(Pangolin REQUIRED)
 # find_package(OpenCV REQUIRED)
-find_package(GTSAM REQUIRED)
 # find_package(SESync REQUIRED)
 
 # Create library.
@@ -20,7 +20,9 @@ set(TONIOVIZ_HDRS
   include/tonioviz/Visualizer.h)
 
 set(TONIOVIZ_LIBS
-  cpp-toolbox
+  gtsam
+  ${Pangolin_LIBRARIES}
+  # cpp-toolbox
   # ${OpenCV_LIBS}
   Eigen3::Eigen)
 
