@@ -3,8 +3,8 @@
 ## Prerequisites
 
 For the moment, make sure you install:
-- Pangolin
-- GTSAM
+- [Pangolin](https://github.com/stevenlovegrove/Pangolin)
+- [GTSAM](https://github.com/borglab/gtsam)
 
 and let me know if it breaks...
 
