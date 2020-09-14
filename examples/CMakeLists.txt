@@ -1,0 +1,2 @@
+add_executable(SimpleCheckout SimpleCheckout.cpp)
+target_link_libraries(SimpleCheckout tonioviz)
