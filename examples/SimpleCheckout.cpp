@@ -8,13 +8,27 @@
 #include <fstream>
 #include <iostream>
 
+#include "tonioviz/DataUtils.h"
 #include "tonioviz/Visualizer.h"
 
 int main() {
+  // Load a visual dataset.
+  mrg::ImageDataset ds;
+  ds.path = "/Users/tonio/Downloads/";
+  ds.filename = "sonar_horizontal";
+  ds.extension = "jpg";
+  ds.start = 0;
+  ds.end = 2497;
+  ds.zeropad = true;
+  ds.digits = 4;
+
+  std::vector<cv::Mat> imgs;
+  mrg::LoadImages(ds, &imgs);
+
   // Create a sample visualizer object.
   mrg::VisualizerParams params;
   params.f = 600;
-  mrg::Visualizer viz{params};  // NOTE: default configuration.
+  mrg::Visualizer viz{params};
 
   // Create a couple dummy poses.
   Eigen::Matrix4d p0 = Eigen::Matrix4d::Identity(),
