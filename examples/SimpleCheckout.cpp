@@ -41,7 +41,8 @@ int main() {
   mrg::Visualizer viz{params};
 
   // Add an image to the visualizer.
-  viz.AddImage(imgs[0]);
+  if (imgs.size() > 0)
+    viz.AddImage(imgs[0]);
 
   // Create a couple dummy poses.
   Eigen::Matrix4d p0 = Eigen::Matrix4d::Identity(),

@@ -8,6 +8,7 @@
 #include "tonioviz/DataUtils.h"
 
 #include <fstream>
+#include <filesystem>
 #include <string>
 
 namespace mrg {
@@ -28,9 +29,11 @@ void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images) {
     padnum = ds.zeropad ? std::string(ds.digits - numstr.length(), '0') + numstr
                         : numstr;
     std::string name = prefix + padnum + end;
-    std::cout << "Reading image: " << name << std::endl;
-    cv::Mat im = cv::imread(name, cv::IMREAD_COLOR);
-    images->push_back(im);
+    if (std::filesystem::exists(name)) {
+      std::cout << "Reading image: " << name << std::endl;
+      cv::Mat im = cv::imread(name, cv::IMREAD_COLOR);
+      images->push_back(im);
+    }
   }
 }
 
