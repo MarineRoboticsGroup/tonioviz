@@ -94,11 +94,24 @@ class Visualizer {
     AddVizPose(std::make_tuple(pose, length, width));
   }
 
-  void AddImage(const cv::Mat& img) {
-    cv::Mat img_short;
-    img.convertTo(img_short, CV_8UC3);
-    cv::flip(img_short.clone(), imgL_, 0);
-  }
+  /**
+   * @brief Add a single image to visualize on top of the estimates.
+   * @param[in] img  OpenCV image to be visualized.
+   */
+  void AddImage(const cv::Mat& img);
+
+  /**
+   * @brief Add both left and right images to be visualized on screen.
+   * @param[in] left   Left OpenCV image to be visualized.
+   * @param[in] right  Right OpenCV image to be visualized.
+   */
+  void AddStereo(const cv::Mat& left, const cv::Mat& right);
+
+  /**
+   * @brief Get the internal copy of the parameters used for construction.
+   * @return The internal parameters structure.
+   */
+  inline VisualizerParams Params() const { return p_; }
 
  private:
   /**

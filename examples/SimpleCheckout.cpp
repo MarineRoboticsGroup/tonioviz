@@ -37,12 +37,13 @@ int main() {
   // Create a sample visualizer object.
   mrg::VisualizerParams params;
   params.f = 600;
-  params.mode = mrg::VisualizerMode::MONO;
+  // params.mode = mrg::VisualizerMode::GRAPHONLY;
+  // params.mode = mrg::VisualizerMode::MONO;
+  params.mode = mrg::VisualizerMode::STEREO;
   mrg::Visualizer viz{params};
 
   // Add an image to the visualizer.
-  if (imgs.size() > 0)
-    viz.AddImage(imgs[0]);
+  if (imgs.size() > 0) viz.AddImage(imgs[0]);
 
   // Create a couple dummy poses.
   Eigen::Matrix4d p0 = Eigen::Matrix4d::Identity(),
@@ -67,8 +68,13 @@ int main() {
 /* ************************************************************************** */
 void DataPlaybackLoop(const std::vector<cv::Mat> &imgs, mrg::Visualizer *viz) {
   size_t counter = 0;
+  mrg::VisualizerParams params = viz->Params();
   for (const cv::Mat &img : imgs) {
-    viz->AddImage(img);
+    if (params.mode == mrg::VisualizerMode::MONO) {
+      viz->AddImage(img);
+    } else if (params.mode == mrg::VisualizerMode::STEREO) {
+      viz->AddStereo(img, img);
+    }
 
     // Add a dummy pose just for funsies.
     Eigen::Matrix4d p = Eigen::Matrix4d::Identity();

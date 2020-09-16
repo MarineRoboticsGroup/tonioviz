@@ -40,8 +40,11 @@ void Visualizer::RenderWorld() {
   pangolin::View& d_cam = pangolin::CreateDisplay()
                               .SetBounds(0.0, 1.0, 0.0, 1.0)
                               .SetHandler(new pangolin::Handler3D(s_cam));
-  pangolin::View& images_cam =
+  // Create the image viewer for either mono or stereo.
+  pangolin::View& left_cam =
       pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.05, 0.5);
+  pangolin::View& right_cam =
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.5, 0.95);
 
   // Real-time toggles using key presses.
   bool show_z0 = true;
@@ -101,12 +104,22 @@ void Visualizer::RenderWorld() {
     glLineWidth(1.0);
 
     // ----------------
-    // -- Stereo images.
-    images_cam.Activate();
-    glColor3f(1.0, 1.0, 1.0);
+    // -- Images.
+    if (p_.mode == VisualizerMode::MONO || p_.mode == VisualizerMode::STEREO) {
+      left_cam.Activate();
+      glColor3f(1.0, 1.0, 1.0);
 
-    imageTexture.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
-    imageTexture.RenderToViewport();
+      imageTexture.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
+      imageTexture.RenderToViewport();
+
+      if (p_.mode == VisualizerMode::STEREO) {
+        right_cam.Activate();
+        glColor3f(1.0, 1.0, 1.0);
+
+        imageTexture.Upload(imgR_.data, GL_BGR, GL_UNSIGNED_BYTE);
+        imageTexture.RenderToViewport();
+      }
+    }
 
     // Swap frames and Process Events
     pangolin::FinishFrame();
@@ -168,6 +181,22 @@ void Visualizer::UpdateEstimate(const gtsam::Values& values,
                                 const std::vector<double>& times) {
   vals_ = values;
   times_ = times;
+}
+
+/* *************************************************************************  */
+void Visualizer::AddImage(const cv::Mat& img) {
+  cv::Mat img_short;
+  img.convertTo(img_short, CV_8UC3);
+  cv::flip(img_short.clone(), imgL_, 0);
+}
+
+/* *************************************************************************  */
+void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
+  cv::Mat left_short, right_short;
+  left.convertTo(left_short, CV_8UC3);  // Not even sure if this is necessary.
+  right.convertTo(right_short, CV_8UC3);
+  cv::flip(left_short.clone(), imgL_, 0);
+  cv::flip(right_short.clone(), imgR_, 0);
 }
 
 }  // namespace mrg
