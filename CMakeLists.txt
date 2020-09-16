@@ -9,21 +9,23 @@ find_package(GTSAM REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 # find_package(cpp-toolbox REQUIRED)
 find_package(Pangolin REQUIRED)
-# find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED)
 # find_package(SESync REQUIRED)
 
 # Create library.
 set(TONIOVIZ_SRCS
+  src/DataUtils.cpp
   src/Visualizer.cpp)
 
 set(TONIOVIZ_HDRS
+  include/tonioviz/DataUtils.h
   include/tonioviz/Visualizer.h)
 
 set(TONIOVIZ_LIBS
   gtsam
   ${Pangolin_LIBRARIES}
   # cpp-toolbox
-  # ${OpenCV_LIBS}
+  ${OpenCV_LIBS}
   Eigen3::Eigen)
 
 add_library(tonioviz STATIC ${TONIOVIZ_SRCS} ${TONIOVIZ_HDRS})
