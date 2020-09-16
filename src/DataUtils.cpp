@@ -28,7 +28,8 @@ void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images) {
     padnum = ds.zeropad ? std::string(ds.digits - numstr.length(), '0') + numstr
                         : numstr;
     std::string name = prefix + padnum + end;
-    cv::Mat im = cv::imread(name, cv::IMREAD_GRAYSCALE);
+    std::cout << "Reading image: " << name << std::endl;
+    cv::Mat im = cv::imread(name, cv::IMREAD_COLOR);
     images->push_back(im);
   }
 }
