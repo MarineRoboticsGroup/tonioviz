@@ -23,7 +23,7 @@ Visualizer::~Visualizer() {}
 
 void Visualizer::RenderWorld() {
   std::cout << "Starting the visualization thread." << std::endl;
-  pangolin::CreateWindowAndBind("spheres-vertigo viewer", p_.w, p_.h);
+  pangolin::CreateWindowAndBind("mrg official viewer", p_.w, p_.h);
   glEnable(GL_DEPTH_TEST);
 
   // TODO(tonioteran) Figure out what the rest of the hardcoded params are, and
