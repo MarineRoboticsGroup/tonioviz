@@ -14,8 +14,8 @@ namespace mrg {
 /* *************************************************************************  */
 Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
   // Make sure the images are never null pointers.
-  imgL_ = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0, 0, 0));
-  imgR_ = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0, 0, 0));
+  imgL_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
+  imgR_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
 }
 
 /* *************************************************************************  */
@@ -36,14 +36,12 @@ void Visualizer::RenderWorld() {
       proj,
       pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));
 
-  float midlinef = 0.4;
-  pangolin::Attach midline(midlinef), top(1.0);
-  pangolin::Attach imgline = std::min(midlinef * (1280.0 / 480.0), 0.6);
-
   // Create the individual cameras for each view.
   pangolin::View& d_cam = pangolin::CreateDisplay()
                               .SetBounds(0.0, 1.0, 0.0, 1.0)
                               .SetHandler(new pangolin::Handler3D(s_cam));
+  pangolin::View& images_cam =
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.05, 0.5);
 
   // Real-time toggles using key presses.
   bool show_z0 = true;
@@ -60,6 +58,12 @@ void Visualizer::RenderWorld() {
   glPointSize(3.5);  // Default is 1.
   // Useful identity.
   Eigen::Matrix4d I_4x4 = Eigen::Matrix4d::Identity();
+
+  // Deal with the images.
+  const int width = 1133;
+  const int height = 625;
+  pangolin::GlTexture imageTexture(width, height, GL_RGB, false, 0, GL_RGB,
+                                   GL_UNSIGNED_BYTE);
 
   while (!pangolin::ShouldQuit()) {
     // Clear screen and activate view to render into
@@ -95,6 +99,14 @@ void Visualizer::RenderWorld() {
     glLineWidth(7.5);
     if (show_z0) pangolin::glDrawAxis(I_4x4, 0.11);
     glLineWidth(1.0);
+
+    // ----------------
+    // -- Stereo images.
+    images_cam.Activate();
+    glColor3f(1.0, 1.0, 1.0);
+
+    imageTexture.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
+    imageTexture.RenderToViewport();
 
     // Swap frames and Process Events
     pangolin::FinishFrame();

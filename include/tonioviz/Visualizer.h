@@ -18,6 +18,8 @@
 #include <Eigen/Dense>
 #include <tuple>
 #include <vector>
+
+// OpenCV includes.
 #include <opencv2/opencv.hpp>
 
 namespace mrg {
