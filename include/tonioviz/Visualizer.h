@@ -18,6 +18,7 @@
 #include <Eigen/Dense>
 #include <tuple>
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 namespace mrg {
 
@@ -28,12 +29,19 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 
 /**
+ * @brief Type of visualization modes available.
+ */
+enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
+
+/**
  * @brief Struct to hold the configuration parameters for the visualizer.
  */
 struct VisualizerParams {
   float w = 1200.0f;  ///< Width of the screen [px].
   float h = 800.0f;   ///< Heigh of the screen [px].
   float f = 300.0f;   ///< Focal distance of the visualization camera [px].
+
+  VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
 };
 
 /**
@@ -84,6 +92,12 @@ class Visualizer {
     AddVizPose(std::make_tuple(pose, length, width));
   }
 
+  void AddImage(const cv::Mat& img) {
+    cv::Mat img_short;
+    img.convertTo(img_short, CV_8UC3);
+    cv::flip(img_short.clone(), imgL_, 0);
+  }
+
  private:
   /**
    * @brief Renders a world consisting of poses and landmarks.
@@ -107,6 +121,9 @@ class Visualizer {
 
   // Manually-modifiable variables.
   std::vector<VizPose> vposes_;  ///< Manually added poses to visualize.
+
+  // OpenCV and image related variables.
+  cv::Mat imgL_, imgR_;  ///< Left and right images.
 
   // GTSAM estimates.
   gtsam::Values vals_;         ///< Current system estimates.

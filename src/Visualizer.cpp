@@ -12,7 +12,11 @@
 namespace mrg {
 
 /* *************************************************************************  */
-Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {}
+Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
+  // Make sure the images are never null pointers.
+  imgL_ = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0, 0, 0));
+  imgR_ = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0, 0, 0));
+}
 
 /* *************************************************************************  */
 Visualizer::~Visualizer() {}
@@ -31,12 +35,6 @@ void Visualizer::RenderWorld() {
   pangolin::OpenGlRenderState s_cam(
       proj,
       pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));
-  pangolin::OpenGlRenderState s_cam_polhode(
-      proj,
-      pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));
-  pangolin::OpenGlRenderState s_cam_isync(
-      proj,
-      pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));
 
   float midlinef = 0.4;
   pangolin::Attach midline(midlinef), top(1.0);
@@ -44,24 +42,8 @@ void Visualizer::RenderWorld() {
 
   // Create the individual cameras for each view.
   pangolin::View& d_cam = pangolin::CreateDisplay()
-                              .SetBounds(0.4, 1.0, 0.0, 0.66)
+                              .SetBounds(0.0, 1.0, 0.0, 1.0)
                               .SetHandler(new pangolin::Handler3D(s_cam));
-  pangolin::View& polhode_cam =
-      pangolin::CreateDisplay()
-          .SetBounds(0.4, 0.625, 0.66, 1.0)
-          .SetHandler(new pangolin::Handler3D(s_cam_polhode));
-  pangolin::View& isync_cam =
-      pangolin::CreateDisplay()
-          .SetBounds(0.625, 1.0, 0.66, 1.0)
-          .SetHandler(new pangolin::Handler3D(s_cam_isync));
-
-  // Create the 2D plots for the angular velocity estimates.
-  float min_x = 0.0, max_x = 180;
-  pangolin::Plotter plotter_x(&omegaxLog_, min_x, max_x);
-  plotter_x.SetBounds(0.0, midline, imgline, 1.0);
-  plotter_x.Track("$i");
-
-  pangolin::DisplayBase().AddDisplay(plotter_x);
 
   // Real-time toggles using key presses.
   bool show_z0 = true;
@@ -113,49 +95,6 @@ void Visualizer::RenderWorld() {
     glLineWidth(7.5);
     if (show_z0) pangolin::glDrawAxis(I_4x4, 0.11);
     glLineWidth(1.0);
-
-    // ----------------
-    // -- Polhode plot.
-    polhode_cam.Activate(s_cam_polhode);
-
-    // Draw the raw measured points.
-    glPointSize(5.0);  // Default is 1.
-    glColor3f(0.7, 0.5, 0.5);
-    if (omegas_.size()) pangolin::glDrawPoints(omegas_);
-    // Draw line connecting all measurements.
-    glColor4f(0.8, 0.6, 0.6, 0.5);
-    glLineWidth(1.0);
-    pangolin::glDrawLineStrip(omegas_);
-    glColor3f(1.0, 1.0, 1.0);
-
-    // Draw the raw measured points.
-    glPointSize(5.0);  // Default is 1.
-    glColor3f(0.7, 0.5, 0.9);
-    if (rotomegas_.size()) pangolin::glDrawPoints(rotomegas_);
-    // Draw line connecting all measurements.
-    glColor4f(0.65, 0.45, 0.9, 0.5);
-    glLineWidth(1.0);
-    pangolin::glDrawLineStrip(rotomegas_);
-    glColor3f(1.0, 1.0, 1.0);
-
-    glColor3f(1.0, 1.0, 1.0);
-    if (show_z0) pangolin::glDraw_z0(1.0, 1);
-    glLineWidth(5.0);
-    if (show_z0) pangolin::glDrawAxis(I_4x4, 0.25);
-
-    // ----------------
-    // -- iSync camera.
-    isync_cam.Activate(s_cam_isync);
-    glLineWidth(1.0);
-    glColor3f(1.0, 1.0, 1.0);
-
-    if (show_gtsam) {
-      DrawTrajectory(estWrtG_);
-    }
-
-    if (show_z0) pangolin::glDraw_z0(1.0, 1);
-    glLineWidth(5.0);
-    if (show_z0) pangolin::glDrawAxis(I_4x4, 0.25);
 
     // Swap frames and Process Events
     pangolin::FinishFrame();
