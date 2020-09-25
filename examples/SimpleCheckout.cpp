@@ -21,7 +21,7 @@ void DataPlaybackLoop(const std::vector<cv::Mat> &imgs, mrg::Visualizer *viz);
 int main() {
   // Load a visual dataset.
   mrg::ImageDataset ds;
-  ds.path = "/Users/tonio/Downloads/sonar_horizontal_whoi_run1/";
+  ds.path = "/home/tonio/data/maxmixtures/sonar_horizontal_whoi_run1/";
   ds.filename = "sonar_horizontal";
   ds.extension = "jpg";
   ds.start = 0;
@@ -40,6 +40,8 @@ int main() {
   // params.mode = mrg::VisualizerMode::GRAPHONLY;
   // params.mode = mrg::VisualizerMode::MONO;
   params.mode = mrg::VisualizerMode::STEREO;
+  params.imgwidth = 1133;
+  params.imgheight = 625;
   mrg::Visualizer viz{params};
 
   // Add an image to the visualizer.

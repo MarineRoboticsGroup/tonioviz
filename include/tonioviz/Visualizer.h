@@ -43,6 +43,9 @@ struct VisualizerParams {
   float h = 800.0f;   ///< Heigh of the screen [px].
   float f = 300.0f;   ///< Focal distance of the visualization camera [px].
 
+  int imgwidth = 672;   ///< Width of the image to view [px].
+  int imgheight = 376;  ///< Height of the image to view [px].
+
   VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
 };
 
