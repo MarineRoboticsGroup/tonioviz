@@ -19,6 +19,9 @@
 #include <tuple>
 #include <vector>
 
+// OpenCV includes.
+#include <opencv2/opencv.hpp>
+
 namespace mrg {
 
 /// Trajectory consisiting of vector of Eigen-aligned 4x4 SE(3) matrices.
@@ -28,12 +31,22 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 
 /**
+ * @brief Type of visualization modes available.
+ */
+enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
+
+/**
  * @brief Struct to hold the configuration parameters for the visualizer.
  */
 struct VisualizerParams {
   float w = 1200.0f;  ///< Width of the screen [px].
   float h = 800.0f;   ///< Heigh of the screen [px].
   float f = 300.0f;   ///< Focal distance of the visualization camera [px].
+
+  int imgwidth = 672;   ///< Width of the image to view [px].
+  int imgheight = 376;  ///< Height of the image to view [px].
+
+  VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
 };
 
 /**
@@ -84,6 +97,25 @@ class Visualizer {
     AddVizPose(std::make_tuple(pose, length, width));
   }
 
+  /**
+   * @brief Add a single image to visualize on top of the estimates.
+   * @param[in] img  OpenCV image to be visualized.
+   */
+  void AddImage(const cv::Mat& img);
+
+  /**
+   * @brief Add both left and right images to be visualized on screen.
+   * @param[in] left   Left OpenCV image to be visualized.
+   * @param[in] right  Right OpenCV image to be visualized.
+   */
+  void AddStereo(const cv::Mat& left, const cv::Mat& right);
+
+  /**
+   * @brief Get the internal copy of the parameters used for construction.
+   * @return The internal parameters structure.
+   */
+  inline VisualizerParams Params() const { return p_; }
+
  private:
   /**
    * @brief Renders a world consisting of poses and landmarks.
@@ -107,6 +139,9 @@ class Visualizer {
 
   // Manually-modifiable variables.
   std::vector<VizPose> vposes_;  ///< Manually added poses to visualize.
+
+  // OpenCV and image related variables.
+  cv::Mat imgL_, imgR_;  ///< Left and right images.
 
   // GTSAM estimates.
   gtsam::Values vals_;         ///< Current system estimates.

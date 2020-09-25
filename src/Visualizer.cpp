@@ -12,14 +12,18 @@
 namespace mrg {
 
 /* *************************************************************************  */
-Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {}
+Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
+  // Make sure the images are never null pointers.
+  imgL_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
+  imgR_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
+}
 
 /* *************************************************************************  */
 Visualizer::~Visualizer() {}
 
 void Visualizer::RenderWorld() {
   std::cout << "Starting the visualization thread." << std::endl;
-  pangolin::CreateWindowAndBind("spheres-vertigo viewer", p_.w, p_.h);
+  pangolin::CreateWindowAndBind("mrg official viewer", p_.w, p_.h);
   glEnable(GL_DEPTH_TEST);
 
   // TODO(tonioteran) Figure out what the rest of the hardcoded params are, and
@@ -31,37 +35,16 @@ void Visualizer::RenderWorld() {
   pangolin::OpenGlRenderState s_cam(
       proj,
       pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));
-  pangolin::OpenGlRenderState s_cam_polhode(
-      proj,
-      pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));
-  pangolin::OpenGlRenderState s_cam_isync(
-      proj,
-      pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));
-
-  float midlinef = 0.4;
-  pangolin::Attach midline(midlinef), top(1.0);
-  pangolin::Attach imgline = std::min(midlinef * (1280.0 / 480.0), 0.6);
 
   // Create the individual cameras for each view.
   pangolin::View& d_cam = pangolin::CreateDisplay()
-                              .SetBounds(0.4, 1.0, 0.0, 0.66)
+                              .SetBounds(0.0, 1.0, 0.0, 1.0)
                               .SetHandler(new pangolin::Handler3D(s_cam));
-  pangolin::View& polhode_cam =
-      pangolin::CreateDisplay()
-          .SetBounds(0.4, 0.625, 0.66, 1.0)
-          .SetHandler(new pangolin::Handler3D(s_cam_polhode));
-  pangolin::View& isync_cam =
-      pangolin::CreateDisplay()
-          .SetBounds(0.625, 1.0, 0.66, 1.0)
-          .SetHandler(new pangolin::Handler3D(s_cam_isync));
-
-  // Create the 2D plots for the angular velocity estimates.
-  float min_x = 0.0, max_x = 180;
-  pangolin::Plotter plotter_x(&omegaxLog_, min_x, max_x);
-  plotter_x.SetBounds(0.0, midline, imgline, 1.0);
-  plotter_x.Track("$i");
-
-  pangolin::DisplayBase().AddDisplay(plotter_x);
+  // Create the image viewer for either mono or stereo.
+  pangolin::View& left_cam =
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.05, 0.5);
+  pangolin::View& right_cam =
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.5, 0.95);
 
   // Real-time toggles using key presses.
   bool show_z0 = true;
@@ -78,6 +61,12 @@ void Visualizer::RenderWorld() {
   glPointSize(3.5);  // Default is 1.
   // Useful identity.
   Eigen::Matrix4d I_4x4 = Eigen::Matrix4d::Identity();
+
+  // Deal with the images.
+  const int width = p_.imgwidth;    // 672;   // 1133;
+  const int height = p_.imgheight;  // 376;  // 625;
+  pangolin::GlTexture imageTexture(width, height, GL_RGB, false, 0, GL_RGB,
+                                   GL_UNSIGNED_BYTE);
 
   while (!pangolin::ShouldQuit()) {
     // Clear screen and activate view to render into
@@ -115,47 +104,22 @@ void Visualizer::RenderWorld() {
     glLineWidth(1.0);
 
     // ----------------
-    // -- Polhode plot.
-    polhode_cam.Activate(s_cam_polhode);
+    // -- Images.
+    if (p_.mode == VisualizerMode::MONO || p_.mode == VisualizerMode::STEREO) {
+      left_cam.Activate();
+      glColor3f(1.0, 1.0, 1.0);
 
-    // Draw the raw measured points.
-    glPointSize(5.0);  // Default is 1.
-    glColor3f(0.7, 0.5, 0.5);
-    if (omegas_.size()) pangolin::glDrawPoints(omegas_);
-    // Draw line connecting all measurements.
-    glColor4f(0.8, 0.6, 0.6, 0.5);
-    glLineWidth(1.0);
-    pangolin::glDrawLineStrip(omegas_);
-    glColor3f(1.0, 1.0, 1.0);
+      imageTexture.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
+      imageTexture.RenderToViewport();
 
-    // Draw the raw measured points.
-    glPointSize(5.0);  // Default is 1.
-    glColor3f(0.7, 0.5, 0.9);
-    if (rotomegas_.size()) pangolin::glDrawPoints(rotomegas_);
-    // Draw line connecting all measurements.
-    glColor4f(0.65, 0.45, 0.9, 0.5);
-    glLineWidth(1.0);
-    pangolin::glDrawLineStrip(rotomegas_);
-    glColor3f(1.0, 1.0, 1.0);
+      if (p_.mode == VisualizerMode::STEREO) {
+        right_cam.Activate();
+        glColor3f(1.0, 1.0, 1.0);
 
-    glColor3f(1.0, 1.0, 1.0);
-    if (show_z0) pangolin::glDraw_z0(1.0, 1);
-    glLineWidth(5.0);
-    if (show_z0) pangolin::glDrawAxis(I_4x4, 0.25);
-
-    // ----------------
-    // -- iSync camera.
-    isync_cam.Activate(s_cam_isync);
-    glLineWidth(1.0);
-    glColor3f(1.0, 1.0, 1.0);
-
-    if (show_gtsam) {
-      DrawTrajectory(estWrtG_);
+        imageTexture.Upload(imgR_.data, GL_BGR, GL_UNSIGNED_BYTE);
+        imageTexture.RenderToViewport();
+      }
     }
-
-    if (show_z0) pangolin::glDraw_z0(1.0, 1);
-    glLineWidth(5.0);
-    if (show_z0) pangolin::glDrawAxis(I_4x4, 0.25);
 
     // Swap frames and Process Events
     pangolin::FinishFrame();
@@ -217,6 +181,22 @@ void Visualizer::UpdateEstimate(const gtsam::Values& values,
                                 const std::vector<double>& times) {
   vals_ = values;
   times_ = times;
+}
+
+/* *************************************************************************  */
+void Visualizer::AddImage(const cv::Mat& img) {
+  cv::Mat img_short;
+  img.convertTo(img_short, CV_8UC3);
+  cv::flip(img_short.clone(), imgL_, 0);
+}
+
+/* *************************************************************************  */
+void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
+  cv::Mat left_short, right_short;
+  left.convertTo(left_short, CV_8UC3);  // Not even sure if this is necessary.
+  right.convertTo(right_short, CV_8UC3);
+  cv::flip(left_short.clone(), imgL_, 0);
+  cv::flip(right_short.clone(), imgR_, 0);
 }
 
 }  // namespace mrg
