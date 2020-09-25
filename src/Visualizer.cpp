@@ -63,8 +63,8 @@ void Visualizer::RenderWorld() {
   Eigen::Matrix4d I_4x4 = Eigen::Matrix4d::Identity();
 
   // Deal with the images.
-  const int width = 1133;
-  const int height = 625;
+  const int width = p_.imgwidth;    // 672;   // 1133;
+  const int height = p_.imgheight;  // 376;  // 625;
   pangolin::GlTexture imageTexture(width, height, GL_RGB, false, 0, GL_RGB,
                                    GL_UNSIGNED_BYTE);
 
