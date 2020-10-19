@@ -83,11 +83,6 @@ void Visualizer::RenderWorld() {
     // Default line width.
     glLineWidth(1.0);
 
-    if (show_gtsam) {
-      DrawObserver();
-      DrawTarget();
-    }
-
     if (show_manual) {
       for (const auto& vp : vposes_) {
         glLineWidth(std::get<2>(vp));
@@ -109,14 +104,18 @@ void Visualizer::RenderWorld() {
       left_cam.Activate();
       glColor3f(1.0, 1.0, 1.0);
 
+      vizmtx_.lock();
       imageTexture.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
+      vizmtx_.unlock();
       imageTexture.RenderToViewport();
 
       if (p_.mode == VisualizerMode::STEREO) {
         right_cam.Activate();
         glColor3f(1.0, 1.0, 1.0);
 
+        vizmtx_.lock();
         imageTexture.Upload(imgR_.data, GL_BGR, GL_UNSIGNED_BYTE);
+        vizmtx_.unlock();
         imageTexture.RenderToViewport();
       }
     }
@@ -128,22 +127,6 @@ void Visualizer::RenderWorld() {
 
 /* ************************************************************************** */
 void Visualizer::DrawObserver() const { DrawTrajectory(est_, 0.13); }
-
-/* ************************************************************************** */
-void Visualizer::DrawTarget() const {
-  DrawTrajectory(tgt_);
-  if (tgt_.size()) {
-    std::vector<Eigen::Vector3d> CGline;
-    Eigen::Vector3d tgtPos = tgt_.back().block<3, 1>(0, 3);
-    CGline.push_back(tgtPos);
-    CGline.push_back(CGpos_);
-    glColor3f(0.0, 0.0, 0.0);
-    glLineWidth(4.0);
-    pangolin::glDrawLineStrip(CGline);
-    glLineWidth(1.0);
-    glColor3f(1.0, 1.0, 1.0);
-  }
-}
 
 /* ************************************************************************** */
 void Visualizer::DrawWorld(
@@ -195,8 +178,11 @@ void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
   cv::Mat left_short, right_short;
   left.convertTo(left_short, CV_8UC3);  // Not even sure if this is necessary.
   right.convertTo(right_short, CV_8UC3);
+
+  vizmtx_.lock();
   cv::flip(left_short.clone(), imgL_, 0);
   cv::flip(right_short.clone(), imgR_, 0);
+  vizmtx_.unlock();
 }
 
 }  // namespace mrg
