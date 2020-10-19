@@ -16,6 +16,7 @@
 #include <pangolin/scene/scenehandler.h>
 
 #include <Eigen/Dense>
+#include <mutex>
 #include <tuple>
 #include <vector>
 
@@ -133,7 +134,6 @@ class Visualizer {
                       const double axesLength = 0.2) const;
 
   void DrawObserver() const;
-  void DrawTarget() const;
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
 
@@ -148,16 +148,9 @@ class Visualizer {
   std::vector<double> times_;  ///< Corresponding estimate timestamps.
   Trajectory3 est_;            ///< Current state estimate trajectory.
   Trajectory3 tgt_;            ///< Current trajectory estimate for the target.
-  Trajectory3 estWrtG_;        ///< Current inspector estimate in G frame.
-  std::vector<Eigen::Vector3d> omegas_;     ///< Tgt's ngular velocity history.
-  std::vector<Eigen::Vector3d> rotomegas_;  ///< Tgt's aligned omegas.
-  Eigen::Vector3d CGpos_;                   ///< Center of mass position.
-  Eigen::Matrix3d R_BG_;                    ///< Principal axes orientation.
-  std::vector<Eigen::Vector3d> gyros_;      ///< Ground truth omegas.
-  std::vector<double> gyrotimes_;           ///< Time stamps for gyro.
 
-  // 2D Plots.
-  pangolin::DataLog omegaxLog_;
+  // For safe threading.
+  mutable std::mutex vizmtx_;
 };
 
 }  // namespace mrg
