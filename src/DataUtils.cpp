@@ -11,6 +11,8 @@
 #include <filesystem>
 #include <string>
 
+#include <opencv2/highgui/highgui.hpp>
+
 namespace mrg {
 
 /* ************************************************************************** */
@@ -19,6 +21,7 @@ void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images) {
   std::string end = "." + ds.extension;
   std::string padnum;
   size_t num_imgs = ds.end - ds.start;
+  cv::namedWindow("window", cv::WINDOW_AUTOSIZE);
 
   // Allocate memory.
   images->clear();
@@ -31,7 +34,9 @@ void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images) {
     std::string name = prefix + padnum + end;
     if (std::filesystem::exists(name)) {
       std::cout << "Reading image: " << name << std::endl;
-      cv::Mat im = cv::imread(name, cv::IMREAD_COLOR);
+      cv::Mat im = cv::imread(name, cv::IMREAD_UNCHANGED);
+      cv::imshow("window", im);
+      cv::waitKey(1);
       images->push_back(im);
     }
   }
