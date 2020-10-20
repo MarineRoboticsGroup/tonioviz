@@ -17,7 +17,8 @@ Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
   imgL_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
   imgR_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
 
-  // Force width and height to be evenly divisible by 4 for Pangolin.
+  // Force width and height to be evenly divisible by 4 for Pangolin. See this
+  // for more details: https://github.com/stevenlovegrove/Pangolin/issues/590.
   p_.imgwidth = p_.imgwidth / 4 * 4;
   p_.imgheight = p_.imgheight / 4 * 4;
 }
@@ -174,6 +175,7 @@ void Visualizer::UpdateEstimate(const gtsam::Values& values,
 void Visualizer::AddImage(const cv::Mat& img) {
   cv::Mat img_short;
   img.convertTo(img_short, CV_8UC3);
+  // Ensure image is truncated to param height, width.
   img_short = img_short.rowRange(0, p_.imgheight).colRange(0, p_.imgwidth);
   cv::flip(img_short.clone(), imgL_, 0);
 }
@@ -184,7 +186,7 @@ void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
   left.convertTo(left_short, CV_8UC3);  // Not even sure if this is necessary.
   right.convertTo(right_short, CV_8UC3);
 
-  // Ensure left/right images are truncated to param height, width
+  // Ensure left/right images are truncated to param height, width.
   left_short = left_short.rowRange(0, p_.imgheight).colRange(0, p_.imgwidth);
   right_short = right_short.rowRange(0, p_.imgheight).colRange(0, p_.imgwidth);
 
