@@ -100,28 +100,6 @@ void Visualizer::RenderWorld() {
       DrawTrajectory(vposes_);
     }
 
-    // TEMP
-    glColor3f(0.0, 0.0, 0.0);
-    int fw = 2, fh = 1;
-    glLineWidth(7.5);
-
-    Eigen::Matrix4d Ttest;
-    // clang-format off
-    Ttest << 0.8213938,  0.1786062,  0.5416752, 1,
-      0.1786062,  0.8213938, -0.5416752, 1,
-      -0.5416752,  0.5416752,  0.6427876, 1,
-      0.0,  0.0, 0.0, 1.0;
-    // clang-format on
-    pangolin::glDrawAxis(Ttest, 0.11);
-    pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, T_frustum_,
-                            p_.frustum_scale);
-    Eigen::Matrix4d T_testf = Ttest * T_frustum_;
-    pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, T_testf,
-                            p_.frustum_scale);
-    glLineWidth(1.5);
-    glColor3f(1.0, 1.0, 1.0);
-    // TEMP
-
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
     if (show_z0) pangolin::glDraw_z0(1.0, 2);
