@@ -131,6 +131,12 @@ void Visualizer::RenderWorld() {
 }
 
 /* ************************************************************************** */
+void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
+                            const double width) {
+  AddVizPose(std::make_tuple(pose, length, width));
+}
+
+/* ************************************************************************** */
 void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
                                 const double axesLength) const {
   std::vector<Eigen::Vector3d> positions;
@@ -151,10 +157,8 @@ void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
 }
 
 /* *************************************************************************  */
-void Visualizer::UpdateEstimate(const gtsam::Values& values,
-                                const std::vector<double>& times) {
-  vals_ = values;
-  times_ = times;
+void Visualizer::DrawTrajectory(const VizPoseVec& trajectory) const {
+  std::vector<Eigen::Vector3d> positions;
 }
 
 /* *************************************************************************  */

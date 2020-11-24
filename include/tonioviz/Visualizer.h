@@ -31,6 +31,8 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
     Trajectory3;
 /// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
+typedef std::vector<VizPose, Eigen::aligned_allocator<Eigen::Matrix4d>>
+    VizPoseVec;
 
 /**
  * @brief Type of visualization modes available.
@@ -75,29 +77,19 @@ class Visualizer {
   void RenderWorld();
 
   /**
-   * @brief Estimates and corresponding time stamps for 3D visualization.
-   * @param[in] values  System estimates.
-   * @param[in] times   Corresponding timestamps.
-   */
-  void UpdateEstimate(const gtsam::Values& values,
-                      const std::vector<double>& times);
-
-  /**
    * @brief Add a visualization pose element.
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
-  void AddVizPose(const VizPose& vpose) { vposes_.push_back(vpose); }
+  inline void AddVizPose(const VizPose& vpose) { vposes_.push_back(vpose); }
 
   /**
-   * @brief Add a visualization pose element.
+   * @brief Add a visualization pose element; overload with individual elements.
    * @param[in] pose     3D pose of triad to visualize.
    * @param[in] length   Length of the pose axes.
    * @param[in] width    Width of the pose axes..
    */
   void AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                  const double width) {
-    AddVizPose(std::make_tuple(pose, length, width));
-  }
+                  const double width);
 
   /**
    * @brief Add a single image to visualize on top of the estimates.
@@ -121,10 +113,16 @@ class Visualizer {
  private:
   /**
    * @brief Renders the trajectory as a sequence of poses.
-   * @param[in] trajectory Eigen-aligned vector of 3D poses.
+   * @param[in] trajectory  Eigen-aligned vector of 3D poses.
    */
   void DrawTrajectory(const Trajectory3& trajectory,
                       const double axesLength = 0.2) const;
+
+  /**
+   * @brief Overload to render a trajectory of pose tuples.
+   * @param[in] trajectory  Eigen-aligned vector of visualization pose tuples.
+   */
+  void DrawTrajectory(const VizPoseVec& trajectory) const;
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
 
