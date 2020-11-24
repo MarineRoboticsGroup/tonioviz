@@ -54,9 +54,17 @@ void Visualizer::RenderWorld() {
   // Real-time toggles using key presses.
   bool show_z0 = true;
   pangolin::RegisterKeyPressCallback('z', [&]() { show_z0 = !show_z0; });
-
-  bool show_gtsam = true;
-  pangolin::RegisterKeyPressCallback('g', [&]() { show_gtsam = !show_gtsam; });
+  // Toggle between drawing only the latest keyframe or full pose history.
+  pangolin::RegisterKeyPressCallback('l',
+                                     [&]() { p_.onlylatest = !p_.onlylatest; });
+  // Toggle between types of keyframes
+  pangolin::RegisterKeyPressCallback('k', [&]() {
+    if (p_.kftype == KeyframeDrawType::kFrustum) {
+      p_.kftype = KeyframeDrawType::kTriad;
+    } else if (p_.kftype == KeyframeDrawType::kTriad) {
+      p_.kftype = KeyframeDrawType::kFrustum;
+    }
+  });
 
   bool show_manual = true;
   pangolin::RegisterKeyPressCallback('m',
