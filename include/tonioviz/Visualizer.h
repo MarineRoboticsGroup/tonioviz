@@ -148,6 +148,16 @@ class Visualizer {
 
   // For safe threading.
   mutable std::mutex vizmtx_;
+
+  // Frustum rotation to align with +X axis (instead of +Z). Just a rotation of
+  // 90deg about +Z, followed by a 90deg rotation about +Y.
+  // clang-format off
+  const Eigen::Matrix4d T_frustum_ =
+      (Eigen::Matrix4d() << 0, 0, 1, 0,
+                            1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 0, 1).finished();
+  // clang-format on
 };
 
 }  // namespace mrg
