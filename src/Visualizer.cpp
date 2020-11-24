@@ -90,12 +90,38 @@ void Visualizer::RenderWorld() {
 
     if (show_manual) {
       DrawTrajectory(vposes_);
-      // for (const auto& vp : vposes_) {
-      //   glLineWidth(std::get<2>(vp));
-      //   pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
-      //   glLineWidth(1.0);
-      // }
     }
+
+    // TEMP
+    glColor3f(0.0, 0.0, 0.0);
+    int fw = 2, fh = 1;
+    double scale = 0.1;
+    double u0 = -static_cast<double>(fw) / 2.0;
+    double v0 = -static_cast<double>(fh) / 2.0;
+    double fu = 1.0;
+    double fv = 1.0;
+    Eigen::Matrix3d Kinv;
+    // clang-format off
+    Kinv <<  fu, 0.0,  u0,
+            0.0,  fv,  v0,
+            0.0, 0.0, 1.0;
+    // clang-format on
+    glLineWidth(7.5);
+
+    Eigen::Matrix4d Ttest;
+    // clang-format off
+    Ttest << 0.8213938,  0.1786062,  0.5416752, 1,
+      0.1786062,  0.8213938, -0.5416752, 1,
+      -0.5416752,  0.5416752,  0.6427876, 1,
+      0.0,  0.0, 0.0, 1.0;
+    // clang-format on
+    pangolin::glDrawAxis(Ttest, 0.11);
+    pangolin::glDrawFrustum(Kinv, fw, fh, T_frustum_, scale);
+    Eigen::Matrix4d T_testf = Ttest * T_frustum_;
+    pangolin::glDrawFrustum(Kinv, fw, fh, T_testf, scale);  // Unrotated.
+    glLineWidth(1.5);
+    glColor3f(1.0, 1.0, 1.0);
+    // TEMP
 
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
