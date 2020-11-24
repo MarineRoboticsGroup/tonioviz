@@ -16,6 +16,7 @@
 #include <pangolin/scene/scenehandler.h>
 
 #include <Eigen/Dense>
+// NOLINTNEXTLINE
 #include <mutex>
 #include <tuple>
 #include <vector>
@@ -119,21 +120,11 @@ class Visualizer {
 
  private:
   /**
-   * @brief Renders a world consisting of poses and landmarks.
-   * @param[in] trajectory Eigen-aligned vector of 3D poses.
-   * @param[in] landmarks Vector of 3D points.
-   */
-  void DrawWorld(const Trajectory3& trajectory,
-                 const std::vector<Eigen::Vector3d>& landmarks) const;
-
-  /**
-   * @brief Renders the trajectory as a sequence of triads.
+   * @brief Renders the trajectory as a sequence of poses.
    * @param[in] trajectory Eigen-aligned vector of 3D poses.
    */
   void DrawTrajectory(const Trajectory3& trajectory,
                       const double axesLength = 0.2) const;
-
-  void DrawObserver() const;
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
 

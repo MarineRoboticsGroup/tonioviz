@@ -131,20 +131,6 @@ void Visualizer::RenderWorld() {
 }
 
 /* ************************************************************************** */
-void Visualizer::DrawObserver() const { DrawTrajectory(est_, 0.13); }
-
-/* ************************************************************************** */
-void Visualizer::DrawWorld(
-    const Trajectory3& trajectory,
-    const std::vector<Eigen::Vector3d>& landmarks) const {
-  // Draw all poses.
-  DrawTrajectory(trajectory);
-
-  // Draw all landmarks.
-  pangolin::glDrawPoints(landmarks);
-}
-
-/* ************************************************************************** */
 void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
                                 const double axesLength) const {
   std::vector<Eigen::Vector3d> positions;
