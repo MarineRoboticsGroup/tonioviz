@@ -95,17 +95,6 @@ void Visualizer::RenderWorld() {
     // TEMP
     glColor3f(0.0, 0.0, 0.0);
     int fw = 2, fh = 1;
-    double scale = 0.1;
-    double u0 = -static_cast<double>(fw) / 2.0;
-    double v0 = -static_cast<double>(fh) / 2.0;
-    double fu = 1.0;
-    double fv = 1.0;
-    Eigen::Matrix3d Kinv;
-    // clang-format off
-    Kinv <<  fu, 0.0,  u0,
-            0.0,  fv,  v0,
-            0.0, 0.0, 1.0;
-    // clang-format on
     glLineWidth(7.5);
 
     Eigen::Matrix4d Ttest;
@@ -116,9 +105,11 @@ void Visualizer::RenderWorld() {
       0.0,  0.0, 0.0, 1.0;
     // clang-format on
     pangolin::glDrawAxis(Ttest, 0.11);
-    pangolin::glDrawFrustum(Kinv, fw, fh, T_frustum_, scale);
+    pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, T_frustum_,
+                            p_.frustum_scale);
     Eigen::Matrix4d T_testf = Ttest * T_frustum_;
-    pangolin::glDrawFrustum(Kinv, fw, fh, T_testf, scale);  // Unrotated.
+    pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, T_testf,
+                            p_.frustum_scale);
     glLineWidth(1.5);
     glColor3f(1.0, 1.0, 1.0);
     // TEMP
@@ -187,19 +178,34 @@ void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
 void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   std::vector<Eigen::Vector3d> positions;
 
-  // Draw all poses.
+  // Draw all keframes and get all positions.
+  glColor3f(0.0, 0.0, 0.4);
   for (const VizPose& vp : trajectory) {
     if (!p_.onlylatest) {
       glLineWidth(std::get<2>(vp));
-      pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
+      if (p_.kftype == KeyframeDrawType::kFrustum) {
+        Eigen::Matrix4d Twf = std::get<0>(vp) * T_frustum_;
+        pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, Twf,
+                                p_.frustum_scale);
+      } else if (p_.kftype == KeyframeDrawType::kTriad) {
+        pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
+      }
       glLineWidth(1.0);
     }
     positions.push_back(std::get<0>(vp).block<3, 1>(0, 3));
   }
+
+  // Draw only the most recent keyframe.
   if (p_.onlylatest && trajectory.size()) {
     VizPose latest = trajectory.back();
     glLineWidth(std::get<2>(latest));
-    pangolin::glDrawAxis(std::get<0>(latest), std::get<1>(latest));
+    if (p_.kftype == KeyframeDrawType::kFrustum) {
+      Eigen::Matrix4d Twf = std::get<0>(latest) * T_frustum_;
+      pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, Twf,
+                              p_.frustum_scale);
+    } else if (p_.kftype == KeyframeDrawType::kTriad) {
+      pangolin::glDrawAxis(std::get<0>(latest), std::get<1>(latest));
+    }
   }
 
   // Draw a line connecting all poses.
