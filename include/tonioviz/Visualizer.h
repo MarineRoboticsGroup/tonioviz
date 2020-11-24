@@ -16,6 +16,7 @@
 #include <pangolin/scene/scenehandler.h>
 
 #include <Eigen/Dense>
+// NOLINTNEXTLINE
 #include <mutex>
 #include <tuple>
 #include <vector>
@@ -30,11 +31,18 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
     Trajectory3;
 /// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
+// typedef std::vector<VizPose, Eigen::aligned_allocator<Eigen::Matrix4d>>
+//     VizPoseVec;
 
 /**
  * @brief Type of visualization modes available.
  */
 enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
+
+/**
+ * @brief Type of keyframe representation for drawing.
+ */
+enum class KeyframeDrawType { kFrustum, kTriad, kPoint };
 
 /**
  * @brief Struct to hold the configuration parameters for the visualizer.
@@ -48,6 +56,10 @@ struct VisualizerParams {
   int imgheight = 376;  ///< Height of the image to view [px].
 
   VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
+
+  KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
+  bool onlylatest = false;     ///< Draw only the most recent keyframe.
+  double frustum_scale = 0.1;  ///< Size of frustum.
 };
 
 /**
@@ -74,29 +86,19 @@ class Visualizer {
   void RenderWorld();
 
   /**
-   * @brief Estimates and corresponding time stamps for 3D visualization.
-   * @param[in] values  System estimates.
-   * @param[in] times   Corresponding timestamps.
-   */
-  void UpdateEstimate(const gtsam::Values& values,
-                      const std::vector<double>& times);
-
-  /**
    * @brief Add a visualization pose element.
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
-  void AddVizPose(const VizPose& vpose) { vposes_.push_back(vpose); }
+  inline void AddVizPose(const VizPose& vpose) { vposes_.push_back(vpose); }
 
   /**
-   * @brief Add a visualization pose element.
+   * @brief Add a visualization pose element; overload with individual elements.
    * @param[in] pose     3D pose of triad to visualize.
    * @param[in] length   Length of the pose axes.
    * @param[in] width    Width of the pose axes..
    */
   void AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                  const double width) {
-    AddVizPose(std::make_tuple(pose, length, width));
-  }
+                  const double width);
 
   /**
    * @brief Add a single image to visualize on top of the estimates.
@@ -119,21 +121,17 @@ class Visualizer {
 
  private:
   /**
-   * @brief Renders a world consisting of poses and landmarks.
-   * @param[in] trajectory Eigen-aligned vector of 3D poses.
-   * @param[in] landmarks Vector of 3D points.
-   */
-  void DrawWorld(const Trajectory3& trajectory,
-                 const std::vector<Eigen::Vector3d>& landmarks) const;
-
-  /**
-   * @brief Renders the trajectory as a sequence of triads.
-   * @param[in] trajectory Eigen-aligned vector of 3D poses.
+   * @brief Renders the trajectory as a sequence of poses.
+   * @param[in] trajectory  Eigen-aligned vector of 3D poses.
    */
   void DrawTrajectory(const Trajectory3& trajectory,
                       const double axesLength = 0.2) const;
 
-  void DrawObserver() const;
+  /**
+   * @brief Overload to render a trajectory of pose tuples.
+   * @param[in] trajectory  Eigen-aligned vector of visualization pose tuples.
+   */
+  void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
 
@@ -151,6 +149,33 @@ class Visualizer {
 
   // For safe threading.
   mutable std::mutex vizmtx_;
+
+  // Frustum rotation to align with +X axis (instead of +Z). Just a rotation of
+  // 90deg about +Z, followed by a 90deg rotation about +Y.
+  // clang-format off
+  const Eigen::Matrix4d T_frustum_ =
+      (Eigen::Matrix4d() << 0, 0, 1, 0,
+                            1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 0, 1).finished();
+  // clang-format on
+
+  // Frustum shape (width and height).
+  const int frustum_w_ = 2, frustum_h_ = 1;
+  // Parameter matrix for the frustum shape, of the following form:
+  //
+  //         [ fu      u0 ]
+  //  Kinv = [     fv  v0 ]
+  //         [          1 ]
+  //
+  // We're assuming a frustum of width = 2 and height = 1, yielding u0 = -1 and
+  // v0 = -0.5, with fu = fv = 1.
+  // clang-format off
+  const Eigen::Matrix3d K_frustum_ =
+       (Eigen::Matrix3d() << 1, 0, -1.0,
+                             0, 1, -0.5,
+                             0, 0,  1.0).finished();
+  // clang-format on
 };
 
 }  // namespace mrg

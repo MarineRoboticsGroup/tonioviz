@@ -31,6 +31,43 @@ Here are some examples:
 
 - ROS-based:
 
+### Drawing keyframes
+
+The types of supported keyframes for drawing are:
+- Frustums: `mrg::KeyframeDrawType::Frustum` (default),
+- Triads: `mrg::KeyframeDrawType::kTriad`,
+- Points: `mrg::KeyframeDrawType::kPoint`.
+
+```cpp
+  mrg::VisualizerParams params;
+  params.kftype = mrg::KeyframeDrawType::kTriad;
+  // Or
+  params.kftype = mrg::KeyframeDrawType::kFrustum;
+  // Or
+  params.kftype = mrg::KeyframeDrawType::kPoint;
+```
+
+It is possible to switch between representations in real-time by pressing the
+`k` key (for "keyframe").
+
+Additionally, it is possible to choose to draw either only the most recent
+keyframe, or the full keyframe history (default) by modifying the visualizer's
+parameter `onlylatest`:
+
+```cpp
+  mrg::VisualizerParams params;
+  params.onlylatest = true;  // Draws only the most recent one.
+  params.onlylatest = true;  // Draws all of them (default).
+```
+
+This can also be dynamically modified during runtime by pressing the key `l`
+(for "latest").
+
+|          | latest only                      | full history                   |
+|----------|----------------------------------|--------------------------------|
+| frustums | ![fl](assets/frustum-latest.png) | ![ff](assets/frustum-full.png) |
+| triads   | ![tl](assets/triad-latest.png)   | ![tf](assets/triad-full.png)   |
+
 ## Troubleshooting
 
 ### `SimpleCheckout.cpp` data

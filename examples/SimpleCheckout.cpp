@@ -21,7 +21,8 @@ void DataPlaybackLoop(const std::vector<cv::Mat> &imgs, mrg::Visualizer *viz);
 int main() {
   // Load a visual dataset.
   mrg::ImageDataset ds;
-  ds.path = "/home/tonio/data/maxmixtures/sonar_horizontal_whoi_run1/";
+  // ds.path = "/home/tonio/data/maxmixtures/sonar_horizontal_whoi_run1/";
+  ds.path = "/Users/tonio/Downloads/sonar_horizontal_whoi_run1/";
   ds.filename = "sonar_horizontal";
   ds.extension = "jpg";
   ds.start = 0;
@@ -40,6 +41,8 @@ int main() {
   // params.mode = mrg::VisualizerMode::GRAPHONLY;
   // params.mode = mrg::VisualizerMode::MONO;
   params.mode = mrg::VisualizerMode::STEREO;
+  // params.onlylatest = true;
+  // params.kftype = mrg::KeyframeDrawType::kTriad;
   params.imgwidth = 1133;
   params.imgheight = 625;
   mrg::Visualizer viz{params};
@@ -80,7 +83,7 @@ void DataPlaybackLoop(const std::vector<cv::Mat> &imgs, mrg::Visualizer *viz) {
 
     // Add a dummy pose just for funsies.
     Eigen::Matrix4d p = Eigen::Matrix4d::Identity();
-    p(0, 3) = 2.0 + (counter * 0.01);
+    p(0, 3) = 2.0 + (counter * 0.1);
     p(1, 3) = std::cos(counter * 0.01);
     p(2, 3) = std::sin(counter * 0.01);
     viz->AddVizPose(p, 0.2, 3.0);
