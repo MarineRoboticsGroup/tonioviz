@@ -89,11 +89,12 @@ void Visualizer::RenderWorld() {
     glLineWidth(1.0);
 
     if (show_manual) {
-      for (const auto& vp : vposes_) {
-        glLineWidth(std::get<2>(vp));
-        pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
-        glLineWidth(1.0);
-      }
+      DrawTrajectory(vposes_);
+      // for (const auto& vp : vposes_) {
+      //   glLineWidth(std::get<2>(vp));
+      //   pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
+      //   glLineWidth(1.0);
+      // }
     }
 
     s_cam.Apply();
@@ -157,8 +158,30 @@ void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
 }
 
 /* *************************************************************************  */
-void Visualizer::DrawTrajectory(const VizPoseVec& trajectory) const {
+void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   std::vector<Eigen::Vector3d> positions;
+
+  // Draw all poses.
+  for (const VizPose& vp : trajectory) {
+    if (!p_.onlylatest) {
+      glLineWidth(std::get<2>(vp));
+      pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
+      glLineWidth(1.0);
+    }
+    positions.push_back(std::get<0>(vp).block<3, 1>(0, 3));
+  }
+  if (p_.onlylatest && trajectory.size()) {
+    VizPose latest = trajectory.back();
+    glLineWidth(std::get<2>(latest));
+    pangolin::glDrawAxis(std::get<0>(latest), std::get<1>(latest));
+  }
+
+  // Draw a line connecting all poses.
+  glColor4f(0.7, 0.7, 0.7, 0.1);
+  glLineWidth(3.0);
+  pangolin::glDrawLineStrip(positions);
+  glLineWidth(1.0);
+  glColor3f(1.0, 1.0, 1.0);
 }
 
 /* *************************************************************************  */

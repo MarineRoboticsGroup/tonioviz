@@ -31,13 +31,18 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
     Trajectory3;
 /// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
-typedef std::vector<VizPose, Eigen::aligned_allocator<Eigen::Matrix4d>>
-    VizPoseVec;
+// typedef std::vector<VizPose, Eigen::aligned_allocator<Eigen::Matrix4d>>
+//     VizPoseVec;
 
 /**
  * @brief Type of visualization modes available.
  */
 enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
+
+/**
+ * @brief Type of keyframe representation for drawing.
+ */
+enum class KeyframeDrawType { kFrustum, kTriad, kPoint };
 
 /**
  * @brief Struct to hold the configuration parameters for the visualizer.
@@ -51,6 +56,9 @@ struct VisualizerParams {
   int imgheight = 376;  ///< Height of the image to view [px].
 
   VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
+
+  KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
+  bool onlylatest = true;  ///< Draw only the most recent keyframe.
 };
 
 /**
@@ -122,7 +130,7 @@ class Visualizer {
    * @brief Overload to render a trajectory of pose tuples.
    * @param[in] trajectory  Eigen-aligned vector of visualization pose tuples.
    */
-  void DrawTrajectory(const VizPoseVec& trajectory) const;
+  void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
 
