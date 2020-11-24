@@ -63,6 +63,14 @@ parameter `onlylatest`:
 This can also be dynamically modified during runtime by pressing the key `l`
 (for "latest").
 
+The size of the keyframe can be modified by the visualizer parameter
+`frustum_scale`, which is in meters:
+
+```cpp
+  mrg::VisualizerParams params;
+  params.frustum_scale = 0.1; // [m], default value.
+```
+
 |          | latest only                      | full history                   |
 |----------|----------------------------------|--------------------------------|
 | frustums | ![fl](assets/frustum-latest.png) | ![ff](assets/frustum-full.png) |

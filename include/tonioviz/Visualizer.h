@@ -59,7 +59,7 @@ struct VisualizerParams {
 
   KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
   bool onlylatest = false;     ///< Draw only the most recent keyframe.
-  double frustum_scale = 0.1;  ///< Size of frustum.
+  double frustum_scale = 0.1;  ///< Size of frustum [m].
 };
 
 /**
