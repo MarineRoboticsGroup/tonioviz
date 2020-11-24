@@ -58,7 +58,8 @@ struct VisualizerParams {
   VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
 
   KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
-  bool onlylatest = true;  ///< Draw only the most recent keyframe.
+  bool onlylatest = false;     ///< Draw only the most recent keyframe.
+  double frustum_scale = 0.1;  ///< Size of frustum.
 };
 
 /**
@@ -157,6 +158,23 @@ class Visualizer {
                             1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 0, 1).finished();
+  // clang-format on
+
+  // Frustum shape (width and height).
+  const int frustum_w_ = 2, frustum_h_ = 1;
+  // Parameter matrix for the frustum shape, of the following form:
+  //
+  //         [ fu      u0 ]
+  //  Kinv = [     fv  v0 ]
+  //         [          1 ]
+  //
+  // We're assuming a frustum of width = 2 and height = 1, yielding u0 = -1 and
+  // v0 = -0.5, with fu = fv = 1.
+  // clang-format off
+  const Eigen::Matrix3d K_frustum_ =
+       (Eigen::Matrix3d() << 1, 0, -1.0,
+                             0, 1, -0.5,
+                             0, 0,  1.0).finished();
   // clang-format on
 };
 
