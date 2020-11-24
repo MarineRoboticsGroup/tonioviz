@@ -47,6 +47,9 @@ The types of supported keyframes for drawing are:
   params.kftype = mrg::KeyframeDrawType::kPoint;
 ```
 
+It is possible to switch between representations in real-time by pressing the
+`k` key (for "keyframe").
+
 Additionally, it is possible to choose to draw either only the most recent
 keyframe, or the full keyframe history (default) by modifying the visualizer's
 parameter `onlylatest`:
