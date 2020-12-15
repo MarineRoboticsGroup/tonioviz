@@ -8,9 +8,6 @@
 #ifndef TONIOVIZ_VISUALIZER_H_
 #define TONIOVIZ_VISUALIZER_H_
 
-#include <gtsam/geometry/Pose3.h>
-#include <gtsam/inference/Symbol.h>
-#include <gtsam/nonlinear/Values.h>
 #include <pangolin/pangolin.h>
 #include <pangolin/scene/axis.h>
 #include <pangolin/scene/scenehandler.h>
@@ -140,12 +137,6 @@ class Visualizer {
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.
-
-  // GTSAM estimates.
-  gtsam::Values vals_;         ///< Current system estimates.
-  std::vector<double> times_;  ///< Corresponding estimate timestamps.
-  Trajectory3 est_;            ///< Current state estimate trajectory.
-  Trajectory3 tgt_;            ///< Current trajectory estimate for the target.
 
   // For safe threading.
   mutable std::mutex vizmtx_;
