@@ -39,6 +39,7 @@ std::vector<VizPose> GetVizPoses(const gtsam::Values& values,
     }
 
     vposes.push_back(std::make_tuple(pose, length, width));
+    counter++;
   }
 
   return vposes;
