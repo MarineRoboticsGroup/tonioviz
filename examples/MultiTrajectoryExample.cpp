@@ -1,6 +1,6 @@
 /**
  * @file MultiTrajectoryExample.cpp
- * @brief Quick GTSAM visualization test.
+ * @brief Quick Multi Trajectory visualization test.
  * @author Alan Papalia, apapalia@mit.edu
  * Copyright 2021 The Ambitious Folks of the MRG
  */
@@ -16,7 +16,6 @@
 
 // Forwards declarations.
 void DataPlaybackLoop(mrg::Visualizer *viz);
-gtsam::Values GetDummyGtsamValues(const size_t size);
 
 int main() {
   // Create a sample visualizer object.
