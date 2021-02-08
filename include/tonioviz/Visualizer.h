@@ -61,7 +61,9 @@ struct VisualizerParams {
 
 /**
  * @class Visualizer
- * @brief Class for wrapping OpenGL and Pangoling to visualize in 3D.
+ * @brief Class for wrapping OpenGL and Pangoling to visualize in 3D. Will
+ * default to single trajectory visualization but allows for visualizing
+ * multiple trajectories.
  */
 class Visualizer {
  public:
@@ -86,13 +88,20 @@ class Visualizer {
    * @brief Add a visualization pose element.
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
-  inline void AddVizPose(const VizPose& vpose) { vposes_.push_back(vpose); }
+  inline void AddVizPose(const VizPose& vpose) {
+    pose_vectors_[0].push_back(vpose);
+  }
 
   /**
-   * @brief Same as above, but for multiple poses at a time..
-   * @param[in] vposes   Vector of visualization poses.
+   * @brief Add a visualization pose element. For multiple trajectories.
+   * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
-  void AddVizPoses(const std::vector<VizPose>& vposes);
+  inline void AddVizPose(const VizPose& vpose, int traj_ind) {
+    while(pose_vectors_.size() <= traj_ind){
+      pose_vectors_.emplace_back(std::vector<VizPose>());
+    }
+    pose_vectors_[traj_ind].push_back(vpose);
+  }
 
   /**
    * @brief Add a visualization pose element; overload with individual elements.
@@ -104,6 +113,29 @@ class Visualizer {
                   const double width);
 
   /**
+   * @brief Add a visualization pose element; overload with individual elements.
+   * For multiple trajectories.
+   * @param[in] pose     3D pose of triad to visualize.
+   * @param[in] length   Length of the pose axes.
+   * @param[in] width    Width of the pose axes..
+   */
+  void AddVizPose(const Eigen::Matrix4d& pose, const double length,
+                  const double width, int traj_ind);
+
+  /**
+   * @brief Same as above, but for multiple poses at a time..
+   * @param[in] vposes   Vector of visualization poses.
+   */
+  void AddVizPoses(const std::vector<VizPose>& vposes);
+
+  /**
+   * @brief Same as above, but for multiple poses at a time. For multiple
+   * trajectories.
+   * @param[in] vposes   Vector of visualization poses.
+   */
+  void AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind);
+
+  /**
    * @brief Same as above, but for multiple poses at the same time..
    * @param[in] poses    Vector of 3D poses to visualize.
    * @param[in] length   Length of the pose axes.
@@ -111,6 +143,16 @@ class Visualizer {
    */
   void AddVizPoses(const Trajectory3& poses, const double length,
                    const double width);
+
+  /**
+   * @brief Same as above, but for multiple poses at the same time. For multiple
+   * trajectories.
+   * @param[in] poses    Vector of 3D poses to visualize.
+   * @param[in] length   Length of the pose axes.
+   * @param[in] width    Width of the pose axes.
+   */
+  void AddVizPoses(const Trajectory3& poses, const double length,
+                   const double width, int traj_ind);
 
   /**
    * @brief Add a single image to visualize on top of the estimates.
@@ -134,7 +176,11 @@ class Visualizer {
   /**
    * @brief Clears all the stored visualized poses.
    */
-  inline void Clear() { vposes_.clear(); }
+  inline void Clear() {
+    for (uint i = 0; i < pose_vectors_.size(); i++) {
+      pose_vectors_[i].clear();
+    }
+  }
 
  private:
   /**
@@ -153,7 +199,8 @@ class Visualizer {
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
 
   // Manually-modifiable variables.
-  std::vector<VizPose> vposes_;  ///< Manually added poses to visualize.
+  std::vector<std::vector<VizPose>>
+      pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.

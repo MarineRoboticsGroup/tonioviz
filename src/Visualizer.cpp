@@ -21,6 +21,9 @@ Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
   // for more details: https://github.com/stevenlovegrove/Pangolin/issues/590.
   p_.imgwidth = p_.imgwidth / 4 * 4;
   p_.imgheight = p_.imgheight / 4 * 4;
+
+  // initialize pose vector with empty vector of poses
+  pose_vectors_.emplace_back(std::vector<VizPose>());
 }
 
 /* *************************************************************************  */
@@ -53,6 +56,7 @@ void Visualizer::RenderWorld() {
 
   // Real-time toggles using key presses.
   bool show_z0 = true;
+  // Toggle between drawing the origin
   pangolin::RegisterKeyPressCallback('z', [&]() { show_z0 = !show_z0; });
   // Toggle between drawing only the latest keyframe or full pose history.
   pangolin::RegisterKeyPressCallback('l',
@@ -97,7 +101,14 @@ void Visualizer::RenderWorld() {
     glLineWidth(1.0);
 
     if (show_manual) {
-      DrawTrajectory(vposes_);
+      int i = 0;
+      for (std::vector<VizPose> pose_traj : pose_vectors_) {
+        std::cout << "Pose Index: " << i
+                  << " Num Vectors: " << pose_vectors_.size() << std::endl;
+        DrawTrajectory(pose_traj);
+        std::cout << "Drew Traj" << std::endl;
+        i++;
+      }
     }
 
     s_cam.Apply();
@@ -135,7 +146,11 @@ void Visualizer::RenderWorld() {
 }
 
 void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes) {
-  for (const auto& vpose : vposes) vposes_.push_back(vpose);
+  for (const auto& vpose : vposes) pose_vectors_[0].push_back(vpose);
+}
+
+void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind) {
+  for (const auto& vpose : vposes) pose_vectors_[traj_ind].push_back(vpose);
 }
 
 /* ************************************************************************** */
@@ -144,11 +159,23 @@ void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
   AddVizPose(std::make_tuple(pose, length, width));
 }
 
+void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
+                            const double width, int traj_ind) {
+  AddVizPose(std::make_tuple(pose, length, width), traj_ind);
+}
+
 /* ************************************************************************** */
 void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
                              const double width) {
   for (const Eigen::Matrix4d& pose : poses) {
     AddVizPose(std::make_tuple(pose, length, width));
+  }
+}
+
+void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
+                             const double width, int traj_ind) {
+  for (const Eigen::Matrix4d& pose : poses) {
+    AddVizPose(std::make_tuple(pose, length, width), traj_ind);
   }
 }
 
