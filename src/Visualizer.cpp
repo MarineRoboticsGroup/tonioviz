@@ -134,10 +134,22 @@ void Visualizer::RenderWorld() {
   }
 }
 
+void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes) {
+  for (const auto& vpose : vposes) vposes_.push_back(vpose);
+}
+
 /* ************************************************************************** */
 void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
                             const double width) {
   AddVizPose(std::make_tuple(pose, length, width));
+}
+
+/* ************************************************************************** */
+void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
+                             const double width) {
+  for (const Eigen::Matrix4d& pose : poses) {
+    AddVizPose(std::make_tuple(pose, length, width));
+  }
 }
 
 /* ************************************************************************** */
