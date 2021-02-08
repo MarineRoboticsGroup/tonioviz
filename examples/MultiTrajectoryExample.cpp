@@ -1,8 +1,8 @@
 /**
- * @file SimpleCheckout.cpp
+ * @file MultiTrajectoryExample.cpp
  * @brief Quick GTSAM visualization test.
- * @author Tonio Teran, teran@mit.edu
- * Copyright 2020 The Ambitious Folks of the MRG
+ * @author Alan Papalia, apapalia@mit.edu
+ * Copyright 2021 The Ambitious Folks of the MRG
  */
 
 // NOLINTNEXTLINE
