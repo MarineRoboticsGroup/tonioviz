@@ -23,11 +23,14 @@
 
 namespace mrg {
 
-/// Trajectory consisiting of vector of Eigen-aligned 4x4 SE(3) matrices.
+/// Trajectory consisting of vector of Eigen-aligned 4x4 SE(3) matrices.
 typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
     Trajectory3;
 /// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
+
+/// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
+typedef Eigen::Vector3d VizLandmark;
 // typedef std::vector<VizPose, Eigen::aligned_allocator<Eigen::Matrix4d>>
 //     VizPoseVec;
 
@@ -40,6 +43,7 @@ enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
  * @brief Type of keyframe representation for drawing.
  */
 enum class KeyframeDrawType { kFrustum, kTriad, kPoint };
+enum class LandmarkDrawType { kCross, kPoint };
 
 /**
  * @brief Struct to hold the configuration parameters for the visualizer.
@@ -55,6 +59,7 @@ struct VisualizerParams {
   VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
 
   KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
+  LandmarkDrawType landtype = LandmarkDrawType::kPoint;  ///< Landmark type.
   bool onlylatest = false;     ///< Draw only the most recent keyframe.
   double frustum_scale = 0.1;  ///< Size of frustum [m].
 };
@@ -89,9 +94,7 @@ class Visualizer {
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
   inline void AddVizPose(const VizPose& vpose) {
-    vizmtx_.lock();
     pose_vectors_[0].push_back(vpose);
-    vizmtx_.unlock();
   }
 
   /**
@@ -99,7 +102,7 @@ class Visualizer {
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
   inline void AddVizPose(const VizPose& vpose, uint traj_ind) {
-    while(pose_vectors_.size() <= traj_ind){
+    while (pose_vectors_.size() <= traj_ind) {
       pose_vectors_.emplace_back(std::vector<VizPose>());
     }
     pose_vectors_[traj_ind].push_back(vpose);
@@ -157,6 +160,22 @@ class Visualizer {
                    const double width, int traj_ind);
 
   /**
+   * @brief Adds a landmark to be visualized
+   *
+   * @param vl landmark
+   */
+  inline void AddVizLandmark(const VizLandmark& vl) {
+    landmarks_.push_back(vl);
+  }
+
+  /**
+   * @brief Adds multiple landmarks to be visualized
+   *
+   * @param landmarks vector of landmarks to visualize
+   */
+  void AddVizLandmarks(const std::vector<VizLandmark>& landmarks);
+
+  /**
    * @brief Add a single image to visualize on top of the estimates.
    * @param[in] img  OpenCV image to be visualized.
    */
@@ -198,11 +217,17 @@ class Visualizer {
    */
   void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
+  // TODO (alan) finish this function
+  void DrawLandmarks(const std::vector<VizLandmark>& landmarks) const;
+
+  inline void DrawLandmarks() const { DrawLandmarks(landmarks_); }
+
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
 
   // Manually-modifiable variables.
   std::vector<std::vector<VizPose>>
       pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
+  std::vector<VizLandmark> landmarks_;
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.

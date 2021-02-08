@@ -101,9 +101,10 @@ void Visualizer::RenderWorld() {
     glLineWidth(1.0);
 
     if (show_manual) {
-      for(uint i = 0; i < pose_vectors_.size(); i++){
+      for (uint i = 0; i < pose_vectors_.size(); i++) {
         DrawTrajectory(pose_vectors_[i]);
       }
+      DrawLandmarks(landmarks_);
     }
 
     s_cam.Apply();
@@ -175,6 +176,12 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
 }
 
 /* ************************************************************************** */
+
+void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
+  for (const auto& vl : landmarks) landmarks_.push_back(vl);
+}
+
+/* ************************************************************************** */
 void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
                                 const double axesLength) const {
   std::vector<Eigen::Vector3d> positions;
@@ -234,6 +241,26 @@ void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   pangolin::glDrawLineStrip(positions);
   glLineWidth(1.0);
   glColor3f(1.0, 1.0, 1.0);
+}
+
+void Visualizer::DrawLandmarks(
+    const std::vector<VizLandmark>& landmarks) const {
+  // Draw all landmarks
+  glColor3f(1.0f, 0.0, 0.0);
+  double rad = 0.25;
+  if (p_.landtype == LandmarkDrawType::kCross) {
+    for (const VizLandmark& vl : landmarks) {
+      pangolin::glDrawCross(vl, rad);
+    }
+  } else if (p_.landtype == LandmarkDrawType::kPoint) {
+    pangolin::glDrawPoints(landmarks);
+  } else {
+    std::cerr << "Attempted landmark visualization is not supported"
+              << std::endl;
+    assert(false);
+  }
+
+  glLineWidth(1.0);
 }
 
 /* *************************************************************************  */

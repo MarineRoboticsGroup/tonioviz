@@ -13,10 +13,6 @@
 
 namespace mrg {
 
-/**
- * TODO(alan) Implement me.
- */
-
 void visualize_isam_estimates(gtsam::ISAM2 isam, std::string output_file) {
   // TODO (alan) finish this function
 

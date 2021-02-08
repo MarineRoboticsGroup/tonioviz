@@ -18,7 +18,7 @@ runs for you.
 
 <!-- In addition, you need to have the following: -->
 
-<!-- - GTSAM (negociable if you guys think we should remove this dependency, should -->
+<!-- - GTSAM (negotiable if you guys think we should remove this dependency, should -->
 <!--   be pretty easy to do) -->
 
 ## Examples
@@ -57,7 +57,7 @@ parameter `onlylatest`:
 ```cpp
   mrg::VisualizerParams params;
   params.onlylatest = true;  // Draws only the most recent one.
-  params.onlylatest = true;  // Draws all of them (default).
+  params.onlylatest = false;  // Draws all of them (default).
 ```
 
 This can also be dynamically modified during runtime by pressing the key `l`

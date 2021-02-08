@@ -1,8 +1,8 @@
 /**
- * @file SimpleCheckout.cpp
- * @brief Quick GTSAM visualization test.
- * @author Tonio Teran, teran@mit.edu
- * Copyright 2020 The Ambitious Folks of the MRG
+ * @file MultiTrajectoryExample.cpp
+ * @brief Quick Multi Trajectory visualization test.
+ * @author Alan Papalia, apapalia@mit.edu
+ * Copyright 2021 The Ambitious Folks of the MRG
  */
 
 // NOLINTNEXTLINE
@@ -10,17 +10,12 @@
 #include <fstream>
 #include <iostream>
 // NOLINTNEXTLINE
-#include <gtsam/geometry/Pose3.h>
-#include <gtsam/inference/Symbol.h>
-
 #include <thread>
 
-#include "tonioviz/GtsamUtils.h"
 #include "tonioviz/Visualizer.h"
 
 // Forwards declarations.
 void DataPlaybackLoop(mrg::Visualizer *viz);
-gtsam::Values GetDummyGtsamValues(const size_t size);
 
 int main() {
   // Create a sample visualizer object.
