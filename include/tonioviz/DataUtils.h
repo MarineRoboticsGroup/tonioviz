@@ -39,6 +39,8 @@ struct ImageDataset {
  */
 void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images);
 
+void VisualizeG2o(const std::string g2o_file);
+
 }  // namespace mrg
 
 #endif  // TONIOVIZ_DATAUTILS_H_
