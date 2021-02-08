@@ -5,28 +5,37 @@ project(tonioviz)
 set(CMAKE_CXX_STANDARD 17)
 
 # External package dependencies.
-find_package(GTSAM REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
-# find_package(cpp-toolbox REQUIRED)
 find_package(Pangolin REQUIRED)
 find_package(OpenCV REQUIRED)
-# find_package(SESync REQUIRED)
+
+# Modularize into separate components.
+option(BUILD_GTSAM_UTILS "Build the GTSAM utilities module." ON)
 
 # Create library.
 set(TONIOVIZ_SRCS
   src/DataUtils.cpp
   src/Visualizer.cpp)
-
 set(TONIOVIZ_HDRS
   include/tonioviz/DataUtils.h
   include/tonioviz/Visualizer.h)
-
 set(TONIOVIZ_LIBS
-  gtsam
   ${Pangolin_LIBRARIES}
-  # cpp-toolbox
   ${OpenCV_LIBS}
   Eigen3::Eigen)
+
+# GTSAM module.
+if (BUILD_GTSAM_UTILS)
+  find_package(GTSAM REQUIRED)
+  # Add GTSAM-related files.
+  list(APPEND TONIOVIZ_SRCS
+    src/GtsamUtils.cpp)
+  list(APPEND TONIOVIZ_HDRS
+    include/tonioviz/GtsamUtils.h)
+  # Add GTSAM library as dependency.
+  list(APPEND TONIOVIZ_LIBS
+    gtsam)
+endif()
 
 add_library(tonioviz STATIC ${TONIOVIZ_SRCS} ${TONIOVIZ_HDRS})
 target_include_directories(tonioviz PUBLIC include)
