@@ -10,12 +10,8 @@
 #include <fstream>
 #include <iostream>
 // NOLINTNEXTLINE
-#include <gtsam/geometry/Pose3.h>
-#include <gtsam/inference/Symbol.h>
-
 #include <thread>
 
-#include "tonioviz/GtsamUtils.h"
 #include "tonioviz/Visualizer.h"
 
 // Forwards declarations.
