@@ -89,6 +89,12 @@ class Visualizer {
   inline void AddVizPose(const VizPose& vpose) { vposes_.push_back(vpose); }
 
   /**
+   * @brief Same as above, but for multiple poses at a time..
+   * @param[in] vposes   Vector of visualization poses.
+   */
+  void AddVizPoses(const std::vector<VizPose>& vposes);
+
+  /**
    * @brief Add a visualization pose element; overload with individual elements.
    * @param[in] pose     3D pose of triad to visualize.
    * @param[in] length   Length of the pose axes.
@@ -96,6 +102,15 @@ class Visualizer {
    */
   void AddVizPose(const Eigen::Matrix4d& pose, const double length,
                   const double width);
+
+  /**
+   * @brief Same as above, but for multiple poses at the same time..
+   * @param[in] poses    Vector of 3D poses to visualize.
+   * @param[in] length   Length of the pose axes.
+   * @param[in] width    Width of the pose axes.
+   */
+  void AddVizPoses(const Trajectory3& poses, const double length,
+                   const double width);
 
   /**
    * @brief Add a single image to visualize on top of the estimates.
@@ -115,6 +130,11 @@ class Visualizer {
    * @return The internal parameters structure.
    */
   inline VisualizerParams Params() const { return p_; }
+
+  /**
+   * @brief Clears all the stored visualized poses.
+   */
+  inline void Clear() { vposes_.clear(); }
 
  private:
   /**

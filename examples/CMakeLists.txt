@@ -1,2 +1,5 @@
 add_executable(SimpleCheckout SimpleCheckout.cpp)
 target_link_libraries(SimpleCheckout tonioviz)
+
+add_executable(GtsamExample GtsamExample.cpp)
+target_link_libraries(GtsamExample tonioviz)

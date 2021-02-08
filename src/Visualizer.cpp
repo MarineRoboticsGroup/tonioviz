@@ -134,10 +134,22 @@ void Visualizer::RenderWorld() {
   }
 }
 
+void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes) {
+  for (const auto& vpose : vposes) vposes_.push_back(vpose);
+}
+
 /* ************************************************************************** */
 void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
                             const double width) {
   AddVizPose(std::make_tuple(pose, length, width));
+}
+
+/* ************************************************************************** */
+void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
+                             const double width) {
+  for (const Eigen::Matrix4d& pose : poses) {
+    AddVizPose(std::make_tuple(pose, length, width));
+  }
 }
 
 /* ************************************************************************** */
@@ -164,7 +176,7 @@ void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
 void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   std::vector<Eigen::Vector3d> positions;
 
-  // Draw all keframes and get all positions.
+  // Draw all keyframes and get all positions.
   glColor3f(0.0, 0.0, 0.4);
   for (const VizPose& vp : trajectory) {
     if (!p_.onlylatest) {

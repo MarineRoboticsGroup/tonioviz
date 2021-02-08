@@ -8,19 +8,35 @@
 #ifndef TONIOVIZ_GTSAMUTILS_H_
 #define TONIOVIZ_GTSAMUTILS_H_
 
-#include <gtsam/nonlinear/ISAM2.h>
-#include <gtsam/nonlinear/NonlinearFactorGraph.h>
-#include <gtsam/slam/dataset.h>
-
 #include <string>
+#include <vector>
+
+#include <gtsam/nonlinear/Values.h>
+#include <gtsam/slam/dataset.h>
+#include <gtsam/slam/dataset.h>
+#include <gtsam/nonlinear/ISAM2.h>
 
 #include "tonioviz/DataUtils.h"
+#include "tonioviz/Visualizer.h"
 
 namespace mrg {
 
 /**
- * TODO(alan) Implement me.
+ * @brief Builds vector of visualization poses to pass directly onto visualizer.
+ * @param[in] values   GTSAM struct with the poses to extract.
+ * @param[in] length   Length of the pose axes.
+ * @param[in] width    Width of the pose axes.
+ * @param[in] c        Character with which poses were stored inside `values`.
+ * @param[in] is3d     Whether to deal with Pose3 (otherwise assumes Pose2).
+ *
+ * Assumptions: the poses were store with increasing indices, starting from 0,
+ * and without skipping an number.
  */
+std::vector<VizPose> GetVizPoses(const gtsam::Values& values,
+                                 const double length = 0.1,
+                                 const double width = 2.0,
+                                 const unsigned char c = 'x',
+                                 const bool is3d = true);
 
 /**
  * @brief Writes current values of variables inside isam object to a g2o file
