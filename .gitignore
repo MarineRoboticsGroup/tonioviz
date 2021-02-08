@@ -32,6 +32,10 @@ ehthumbs.db
 *.lot
 main.pdf
 
+# vscode #
+##########
+.vscode/
+
 # spacemacs #
 #############
 auto/
