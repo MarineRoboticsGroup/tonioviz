@@ -6,3 +6,6 @@ target_link_libraries(GtsamExample tonioviz)
 
 add_executable(MultiTrajectoryExample MultiTrajectoryExample.cpp)
 target_link_libraries(MultiTrajectoryExample tonioviz)
+
+add_executable(LandmarkExample LandmarkExample.cpp)
+target_link_libraries(LandmarkExample tonioviz)
