@@ -10,12 +10,10 @@
 #include <fstream>
 #include <iostream>
 // NOLINTNEXTLINE
-#include <thread>
-
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/inference/Symbol.h>
-#include <gtsam/inference/Symbol.h>
 
+#include <thread>
 
 #include "tonioviz/GtsamUtils.h"
 #include "tonioviz/Visualizer.h"
@@ -42,34 +40,22 @@ int main() {
 
 /* ************************************************************************** */
 void DataPlaybackLoop(mrg::Visualizer *viz) {
-  size_t counter = 0;
-  size_t num_poses = 1000;
+  size_t cnt = 0;
+  float k = 0.03;
+  while (cnt < 1000) {
+    // Add a dummy pose just for funsies.
+    Eigen::Matrix4d p = Eigen::Matrix4d::Identity();
+    p(0, 3) = 2 * std::sin(cnt * k);                      // x
+    p(1, 3) = 2 * std::sin(cnt * k) * std::cos(cnt * k);  // y
+    p(2, 3) = (cnt * k);                                  // z
+    viz->AddVizPose(p, 0.2, 3.0);
 
-  gtsam::Values values;
-  while (counter < num_poses) {
-    values = GetDummyGtsamValues(counter + 1);
+    p(0, 3) = 2 * std::sin(M_PI + cnt * k);                             // x
+    p(1, 3) = 2 * std::sin(M_PI + cnt * k) * std::cos(M_PI + cnt * k);  // y
+    p(2, 3) = (cnt * k);                                                // z
+    viz->AddVizPose(p, 0.2, 3.0, 1);
 
-    viz->Clear();  // Make sure to clear the visualizer first!!!
-    viz->AddVizPoses(mrg::GetVizPoses(values));  // Add straight from gtsam.
-
-    std::this_thread::sleep_for(std::chrono::nanoseconds(100000000));
-    counter++;
+    std::this_thread::sleep_for(std::chrono::nanoseconds(50000000));
+    cnt++;
   }
-}
-
-/* ************************************************************************** */
-gtsam::Values GetDummyGtsamValues(const size_t size) {
-  gtsam::Values values;
-
-  for (int i = 0; i < size; i++) {
-    Eigen::Matrix4d pose = Eigen::Matrix4d::Identity();
-    double radius = 0.05 * i;
-    double angle = 0.1 * i;
-    pose(0, 3) = radius * std::cos(angle);
-    pose(1, 3) = radius * std::sin(angle);
-
-    values.insert(gtsam::Symbol('x', i), gtsam::Pose3(pose));
-  }
-
-  return values;
 }

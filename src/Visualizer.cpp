@@ -101,13 +101,8 @@ void Visualizer::RenderWorld() {
     glLineWidth(1.0);
 
     if (show_manual) {
-      int i = 0;
-      for (std::vector<VizPose> pose_traj : pose_vectors_) {
-        std::cout << "Pose Index: " << i
-                  << " Num Vectors: " << pose_vectors_.size() << std::endl;
-        DrawTrajectory(pose_traj);
-        std::cout << "Drew Traj" << std::endl;
-        i++;
+      for(uint i = 0; i < pose_vectors_.size(); i++){
+        DrawTrajectory(pose_vectors_[i]);
       }
     }
 

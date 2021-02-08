@@ -52,7 +52,7 @@ void DataPlaybackLoop(mrg::Visualizer *viz) {
     viz->Clear();  // Make sure to clear the visualizer first!!!
     viz->AddVizPoses(mrg::GetVizPoses(values));  // Add straight from gtsam.
 
-    std::this_thread::sleep_for(std::chrono::nanoseconds(100000000));
+    std::this_thread::sleep_for(std::chrono::nanoseconds(50000000));
     counter++;
   }
 }

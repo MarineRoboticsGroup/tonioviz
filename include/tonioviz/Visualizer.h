@@ -89,14 +89,16 @@ class Visualizer {
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
   inline void AddVizPose(const VizPose& vpose) {
+    vizmtx_.lock();
     pose_vectors_[0].push_back(vpose);
+    vizmtx_.unlock();
   }
 
   /**
    * @brief Add a visualization pose element. For multiple trajectories.
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
-  inline void AddVizPose(const VizPose& vpose, int traj_ind) {
+  inline void AddVizPose(const VizPose& vpose, uint traj_ind) {
     while(pose_vectors_.size() <= traj_ind){
       pose_vectors_.emplace_back(std::vector<VizPose>());
     }
