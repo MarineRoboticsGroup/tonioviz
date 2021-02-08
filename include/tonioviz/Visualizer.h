@@ -89,9 +89,7 @@ class Visualizer {
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
   inline void AddVizPose(const VizPose& vpose) {
-    vizmtx_.lock();
     pose_vectors_[0].push_back(vpose);
-    vizmtx_.unlock();
   }
 
   /**
