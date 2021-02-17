@@ -62,9 +62,9 @@ void DataPlaybackLoop(mrg::Visualizer *viz) {
   }
 
   // fill landmarks vector
-  std::vector<Eigen::Vector3d> landmarks;
+  std::vector<mrg::VizLandmark> landmarks;
   for (size_t i = 0; i < num_landmarks; i++) {
-    landmarks.emplace_back(Eigen::Vector3d(x_locs[i], y_locs[i], z_locs[i]));
+    landmarks.emplace_back(mrg::VizLandmark(x_locs[i], y_locs[i], z_locs[i]));
   }
 
   // add landmarks to visualizer

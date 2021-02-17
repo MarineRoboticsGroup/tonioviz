@@ -243,25 +243,6 @@ void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   glColor3f(1.0, 1.0, 1.0);
 }
 
-void Visualizer::DrawLandmarks(
-    const std::vector<VizLandmark>& landmarks) const {
-  // Draw all landmarks
-  glColor3f(1.0f, 0.0, 0.0);
-  double rad = 0.25;
-  if (p_.landtype == LandmarkDrawType::kCross) {
-    for (const VizLandmark& vl : landmarks) {
-      pangolin::glDrawCross(vl, rad);
-    }
-  } else if (p_.landtype == LandmarkDrawType::kPoint) {
-    pangolin::glDrawPoints(landmarks);
-  } else {
-    std::cerr << "Attempted landmark visualization is not supported"
-              << std::endl;
-    assert(false);
-  }
-
-  glLineWidth(1.0);
-}
 
 /* *************************************************************************  */
 void Visualizer::AddImage(const cv::Mat& img) {
