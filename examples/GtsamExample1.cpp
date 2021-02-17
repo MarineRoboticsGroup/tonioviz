@@ -1,7 +1,8 @@
 /**
- * @file SimpleCheckout.cpp
- * @brief Quick GTSAM visualization test.
+ * @file GtsamExample1.cpp
+ * @brief Quick GTSAM visualization test to check use of poses from GTSAM
  * @author Tonio Teran, teran@mit.edu
+ * @author Alan Papalia, apapalia@mit.edu
  * Copyright 2020 The Ambitious Folks of the MRG
  */
 
@@ -10,12 +11,10 @@
 #include <fstream>
 #include <iostream>
 // NOLINTNEXTLINE
-#include <thread>
-
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/inference/Symbol.h>
-#include <gtsam/inference/Symbol.h>
 
+#include <thread>
 
 #include "tonioviz/GtsamUtils.h"
 #include "tonioviz/Visualizer.h"

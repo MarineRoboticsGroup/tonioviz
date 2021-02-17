@@ -29,8 +29,9 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
 /// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 
-/// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
+/// 3D Position of landmark
 typedef Eigen::Vector3d VizLandmark;
+
 // typedef std::vector<VizPose, Eigen::aligned_allocator<Eigen::Matrix4d>>
 //     VizPoseVec;
 
@@ -217,8 +218,24 @@ class Visualizer {
    */
   void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
-  // TODO (alan) finish this function
-  void DrawLandmarks(const std::vector<VizLandmark>& landmarks) const;
+  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks) const{
+  // Draw all landmarks
+  glColor3f(1.0f, 0.0, 0.0);
+  double rad = 0.25;
+  if (p_.landtype == LandmarkDrawType::kCross) {
+    for (const VizLandmark& vl : landmarks) {
+      pangolin::glDrawCross(vl, rad);
+    }
+  } else if (p_.landtype == LandmarkDrawType::kPoint) {
+    pangolin::glDrawPoints(landmarks);
+  } else {
+    std::cerr << "Attempted landmark visualization is not supported"
+              << std::endl;
+    assert(false);
+  }
+
+  glLineWidth(1.0);
+  }
 
   inline void DrawLandmarks() const { DrawLandmarks(landmarks_); }
 
