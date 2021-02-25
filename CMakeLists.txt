@@ -38,7 +38,7 @@ if (BUILD_GTSAM_UTILS)
 endif()
 
 add_library(tonioviz STATIC ${TONIOVIZ_SRCS} ${TONIOVIZ_HDRS})
-target_include_directories(tonioviz PUBLIC include)
+target_include_directories(tonioviz PUBLIC include ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(tonioviz PUBLIC ${TONIOVIZ_LIBS})
 target_compile_options(tonioviz PRIVATE -Wall)
 
