@@ -48,7 +48,7 @@ int main() {
   size_t num_robots = 5;
   bool is3d = true;
   bool animation = true;
-  size_t ms_wait = 10;
+  size_t ms_wait = 20;
 
   // make 2d array of pose symbols
   std::vector<std::vector<gtsam::Symbol>> pose_symbols(num_robots);

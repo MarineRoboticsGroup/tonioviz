@@ -204,6 +204,11 @@ class Visualizer {
     }
   }
 
+  /**
+   * @brief Allows to check if the visualizer has been told to force quit
+   */
+  inline bool HasForcedQuit() {return forced_quit_;}
+
  private:
   /**
    * @brief Renders the trajectory as a sequence of poses.
@@ -218,28 +223,32 @@ class Visualizer {
    */
   void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
-  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks) const{
-  // Draw all landmarks
-  glColor3f(1.0f, 0.0, 0.0);
-  double rad = 0.25;
-  if (p_.landtype == LandmarkDrawType::kCross) {
-    for (const VizLandmark& vl : landmarks) {
-      pangolin::glDrawCross(vl, rad);
+  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks) const {
+    // Draw all landmarks
+    glColor3f(1.0f, 0.0, 0.0);
+    double rad = 0.25;
+    if (p_.landtype == LandmarkDrawType::kCross) {
+      for (const VizLandmark& vl : landmarks) {
+        pangolin::glDrawCross(vl, rad);
+      }
+    } else if (p_.landtype == LandmarkDrawType::kPoint) {
+      pangolin::glDrawPoints(landmarks);
+    } else {
+      std::cerr << "Attempted landmark visualization is not supported"
+                << std::endl;
+      assert(false);
     }
-  } else if (p_.landtype == LandmarkDrawType::kPoint) {
-    pangolin::glDrawPoints(landmarks);
-  } else {
-    std::cerr << "Attempted landmark visualization is not supported"
-              << std::endl;
-    assert(false);
-  }
 
-  glLineWidth(1.0);
+    glLineWidth(1.0);
   }
 
   inline void DrawLandmarks() const { DrawLandmarks(landmarks_); }
 
+
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
+  const std::string _window_name =
+      "mrg official viewer";  // name of the visualizer window
+  bool forced_quit_ = false;
 
   // Manually-modifiable variables.
   std::vector<std::vector<VizPose>>
