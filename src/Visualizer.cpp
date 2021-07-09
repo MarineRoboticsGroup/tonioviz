@@ -31,7 +31,7 @@ Visualizer::~Visualizer() {}
 
 void Visualizer::RenderWorld() {
   std::cout << "Starting the visualization thread." << std::endl;
-  pangolin::CreateWindowAndBind("mrg official viewer", p_.w, p_.h);
+  pangolin::CreateWindowAndBind(_window_name, p_.w, p_.h);
   glEnable(GL_DEPTH_TEST);
 
   // TODO(tonioteran) Figure out what the rest of the hardcoded params are, and
@@ -68,6 +68,11 @@ void Visualizer::RenderWorld() {
     } else if (p_.kftype == KeyframeDrawType::kTriad) {
       p_.kftype = KeyframeDrawType::kFrustum;
     }
+  });
+  pangolin::RegisterKeyPressCallback('q', [&]() {
+    pangolin::QuitAll();
+    pangolin::DestroyWindow(_window_name);
+    forced_quit_ = true;
   });
 
   bool show_manual = true;

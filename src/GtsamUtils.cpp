@@ -100,6 +100,9 @@ static void GtsamDataLoop(mrg::Visualizer *viz, gtsam::Values curr_estimate,
   // Add poses to visualizer
   for (size_t timestep = 0; timestep < num_timesteps; timestep++) {
     for (size_t robot = 0; robot < num_robots; robot++) {
+      if (viz->HasForcedQuit()){
+        return;
+      }
       // don't try to add poses that don't exist
       if (timestep >= pose_symbols[robot].size()) {
         continue;
