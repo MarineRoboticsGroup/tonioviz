@@ -248,7 +248,6 @@ void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   glColor3f(1.0, 1.0, 1.0);
 }
 
-
 /* *************************************************************************  */
 void Visualizer::AddImage(const cv::Mat& img) {
   cv::Mat img_short;

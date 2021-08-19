@@ -8,12 +8,10 @@
 #ifndef TONIOVIZ_DATAUTILS_H_
 #define TONIOVIZ_DATAUTILS_H_
 
-// NOLINTNEXTLINE
-#include <chrono>
-#include <string>
-#include <vector>
-
+#include <chrono>  //NOLINT
 #include <opencv2/opencv.hpp>
+#include <string>  //NOLINT [build/include_order]
+#include <vector>  //NOLINT [build/include_order]
 
 namespace mrg {
 

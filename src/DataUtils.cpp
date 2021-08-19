@@ -7,8 +7,8 @@
 
 #include "tonioviz/DataUtils.h"
 
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 #include <string>
 
 namespace mrg {
@@ -37,8 +37,6 @@ void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images) {
   }
 }
 
-void VisualizeG2o(const std::string g2o_file){
-
-}
+void VisualizeG2o(const std::string g2o_file) {}
 
 }  // namespace mrg

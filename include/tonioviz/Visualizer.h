@@ -15,6 +15,7 @@
 #include <Eigen/Dense>
 // NOLINTNEXTLINE
 #include <mutex>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -207,7 +208,7 @@ class Visualizer {
   /**
    * @brief Allows to check if the visualizer has been told to force quit
    */
-  inline bool HasForcedQuit() {return forced_quit_;}
+  inline bool HasForcedQuit() { return forced_quit_; }
 
  private:
   /**
@@ -243,7 +244,6 @@ class Visualizer {
   }
 
   inline void DrawLandmarks() const { DrawLandmarks(landmarks_); }
-
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
   const std::string _window_name =

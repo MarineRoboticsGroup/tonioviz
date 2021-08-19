@@ -6,15 +6,13 @@
  * Copyright 2020 The Ambitious Folks of the MRG
  */
 
-// NOLINTNEXTLINE
-#include <chrono>
-#include <fstream>
-#include <iostream>
-// NOLINTNEXTLINE
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/inference/Symbol.h>
 
-#include <thread>
+#include <chrono>  // NOLINT [build/c++11]
+#include <fstream>
+#include <iostream>
+#include <thread>  // NOLINT [build/c++11]
 
 #include "tonioviz/GtsamUtils.h"
 #include "tonioviz/Visualizer.h"

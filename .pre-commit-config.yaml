@@ -21,7 +21,11 @@ repos:
 -   repo: https://github.com/bmorcos/pre-commit-hooks-cpp
     rev: 5fa6fb8e51b573604db0b71df9ea3dc7bfbca453
     hooks:
-    # -   id: clang-format
-    # -   id: cppcheck
+    -   id: cppcheck
+        args: [--language=c++]
     -   id: cpplint
         args: [--repository=include]
+-   repo: https://github.com/alanpapalia/pre-commit-clang-format
+    rev: fefc91d9742bbe2898799b6c31f25c792fc8093a
+    hooks:
+    -   id: clang-format-12

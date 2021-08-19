@@ -6,15 +6,13 @@
  * Copyright 2020 The Ambitious Folks of the MRG
  */
 
-// NOLINTNEXTLINE
-#include <chrono>
-#include <fstream>
-#include <iostream>
-// NOLINTNEXTLINE
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/inference/Symbol.h>
 
-#include <thread>
+#include <chrono>  // NOLINT [build/c++11]
+#include <fstream>
+#include <iostream>
+#include <thread>  // NOLINT [build/c++11]
 
 #include "tonioviz/GtsamUtils.h"
 #include "tonioviz/Visualizer.h"
@@ -137,11 +135,11 @@ gtsam::Pose2 GetPose2(size_t robot, size_t time) {
 gtsam::Pose3 GetPose3(size_t robot, size_t time) {
   float x = 2 * robot + 2 * std::sin(robot * M_PI + time * k);  // x
   float y = 2 * std::sin(robot * M_PI + time * k) *
-            std::cos(robot * M_PI + time * k);  // y
-  float z = std::sin(robot * M_PI + 2*time * k);  // z
-  float yaw = (time * k);                       // yaw
-  float pitch = (time * k);                     // pitch
-  float roll = (time * k);                      // roll
+            std::cos(robot * M_PI + time * k);      // y
+  float z = std::sin(robot * M_PI + 2 * time * k);  // z
+  float yaw = (time * k);                           // yaw
+  float pitch = (time * k);                         // pitch
+  float roll = (time * k);                          // roll
 
   return gtsam::Pose3(gtsam::Rot3::Yaw(yaw), gtsam::Point3(x, y, z));
 }
