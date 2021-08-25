@@ -33,9 +33,6 @@ typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 /// 3D Position of landmark
 typedef Eigen::Vector3d VizLandmark;
 
-// typedef std::vector<VizPose, Eigen::aligned_allocator<Eigen::Matrix4d>>
-//     VizPoseVec;
-
 /**
  * @brief Type of visualization modes available.
  */
@@ -46,6 +43,14 @@ enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
  */
 enum class KeyframeDrawType { kFrustum, kTriad, kPoint };
 enum class LandmarkDrawType { kCross, kPoint };
+
+/**
+ * @brief Struct to hold circles for drawing.
+ *
+ */
+struct Circle {
+  double x, y, r;
+};
 
 /**
  * @brief Struct to hold the configuration parameters for the visualizer.
@@ -90,6 +95,8 @@ class Visualizer {
    * @brief Main visualization for Simple3dWorld that does all the drawing.
    */
   void RenderWorld();
+
+  inline void AddRangeMeasurement(const Circle c) { circles_.push_back(c); }
 
   /**
    * @brief Add a visualization pose element.
@@ -245,6 +252,18 @@ class Visualizer {
 
   inline void DrawLandmarks() const { DrawLandmarks(landmarks_); }
 
+  inline void DrawCircles() const { DrawCircles(circles_); }
+
+  inline void DrawCircles(std::vector<Circle> circles) const {
+    for (const Circle c : circles) {
+      DrawCircle(c);
+    }
+  }
+
+  inline void DrawCircle(Circle c) const {
+    pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
+  }
+
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
   const std::string _window_name =
       "mrg official viewer";  // name of the visualizer window
@@ -254,6 +273,7 @@ class Visualizer {
   std::vector<std::vector<VizPose>>
       pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
   std::vector<VizLandmark> landmarks_;
+  std::vector<Circle> circles_;
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.

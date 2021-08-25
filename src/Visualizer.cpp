@@ -112,6 +112,8 @@ void Visualizer::RenderWorld() {
       DrawLandmarks(landmarks_);
     }
 
+    DrawCircles();
+
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
     if (show_z0) pangolin::glDraw_z0(1.0, 2);

@@ -1,7 +1,8 @@
 /**
  * @file GtsamExample2.cpp
  * @brief Slightly more advanced GTSAM visualization test to check automatic
- * visualization given values and symbols for landmarks and pose chains
+ * visualization given values and symbols for landmarks and pose chains. Does
+ * not require the user to convert all GTSAM values to Viz objects.
  * @author Alan Papalia, apapalia@mit.edu
  * Copyright 2020 The Ambitious Folks of the MRG
  */
