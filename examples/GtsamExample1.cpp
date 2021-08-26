@@ -21,6 +21,7 @@
 // Forwards declarations.
 void DataPlaybackLoop(mrg::Visualizer *viz);
 gtsam::Values GetDummyGtsamValues(const size_t size);
+thread_local unsigned int seed = time(NULL);
 
 int main() {
   // Create a sample visualizer object.
@@ -39,7 +40,7 @@ int main() {
 }
 
 double GetRandDouble(double low, double high) {
-  return (rand_r() % 100) / 100.0 * (high - low) + low;
+  return (rand_r(&seed) % 100) / 100.0 * (high - low) + low;
 }
 
 /* ************************************************************************** */
