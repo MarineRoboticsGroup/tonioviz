@@ -115,6 +115,7 @@ static void GtsamDataLoop(
     const bool animation, const size_t ms_wait) {
   gtsam::Symbol sym;
 
+  // Add landmarks to the visualizer.
   for (const auto& [index, sym] : landmark_symbols) {
     if (is3d) {
       gtsam::Point3 point = curr_estimate.at<gtsam::Point3>(sym);
@@ -125,35 +126,19 @@ static void GtsamDataLoop(
     }
   }
 
-  // find the longest trajectory
-  size_t num_robots = pose_symbols.size();
-  size_t num_timesteps = 0;
-  size_t size;
-  for (size_t i = 0; i < num_robots; i++) {
-    size = pose_symbols[i].size();
-    if (num_timesteps < size) {
-      num_timesteps = size;
-    }
-  }
-
-  // Add poses to visualizer
-  for (size_t timestep = 0; timestep < num_timesteps; timestep++) {
-    for (size_t robot = 0; robot < num_robots; robot++) {
+  // Add poses to the visualizer.
+  size_t robot_index = 0;
+  for (const std::vector<gtsam::Symbol>& robot_trajectory : pose_symbols) {
+    for (const gtsam::Symbol& pose_symbol : robot_trajectory) {
       if (viz->HasForcedQuit()) return;
-
-      // Don't try to add poses that don't exist.
-      if (timestep >= pose_symbols[robot].size()) continue;
-
-      // Get pose and add to visualizer.
-      sym = pose_symbols[robot][timestep];
       if (is3d) {
-        gtsam::Pose3 pose = curr_estimate.at<gtsam::Pose3>(sym);
+        gtsam::Pose3 pose = curr_estimate.at<gtsam::Pose3>(pose_symbol);
         mrg::VizPose v_pose = mrg::GetVizPose(pose);
-        viz->AddVizPose(v_pose, robot);
+        viz->AddVizPose(v_pose, robot_index);
       } else {
-        gtsam::Pose2 pose = curr_estimate.at<gtsam::Pose2>(sym);
+        gtsam::Pose2 pose = curr_estimate.at<gtsam::Pose2>(pose_symbol);
         mrg::VizPose v_pose = mrg::GetVizPose(pose);
-        viz->AddVizPose(v_pose, robot);
+        viz->AddVizPose(v_pose, robot_index);
       }
     }
 
@@ -161,6 +146,8 @@ static void GtsamDataLoop(
     if (animation) {
       std::this_thread::sleep_for(std::chrono::milliseconds(ms_wait));
     }
+
+    ++robot_index;
   }
 }
 
