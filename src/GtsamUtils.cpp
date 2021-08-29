@@ -12,19 +12,28 @@
 
 namespace mrg {
 
-inline VizPose GetVizPose(const gtsam::Pose3 pose3, const double length,
-                          const double width) {
+/* ************************************************************************** */
+VizPose GetVizPose(const gtsam::Pose3& pose3, const double length,
+                   const double width) {
   Eigen::Matrix4d pose = pose3.matrix();
   return std::make_tuple(pose, length, width);
 }
 
-inline VizPose GetVizPose(const gtsam::Pose2 pose2, const double length,
-                          const double width) {
+/* ************************************************************************** */
+VizPose GetVizPose(const gtsam::Pose2& pose2, const double length,
+                   const double width) {
   Eigen::Matrix4d pose = Eigen::Matrix4d::Identity();
   Eigen::Matrix3d pose2mat = pose2.matrix();
   pose.block(0, 0, 2, 2) = pose2mat.block(0, 0, 2, 2);
   pose.block(0, 3, 2, 1) = pose2mat.block(0, 2, 2, 1);
   return std::make_tuple(pose, length, width);
+}
+
+/* ************************************************************************** */
+VizLandmark GetVizLandmark(const gtsam::Point2& landmark) {
+  VizLandmark v_landmark = Eigen::Vector3d::Zero();
+  v_landmark.block(0, 0, 2, 1) = landmark.matrix();
+  return v_landmark;
 }
 
 std::vector<VizPose> GetVizPoses(const gtsam::Values& values,

@@ -24,32 +24,34 @@
 namespace mrg {
 
 /**
- * @brief Takes GTSAM pose object and returns as VizPose object
+ * @brief Takes GTSAM pose object and returns as VizPose object.
  *
- * @param pose3     GTSAM pose to convert to matrix form
- * @param length    length of the pose axes
- * @param width     width of the pose axes
+ * @param pose3     GTSAM pose to convert to matrix form.
+ * @param length    Length of the pose axes.
+ * @param width     Width of the pose axes.
  * @return VizPose
  */
-inline VizPose GetVizPose(const gtsam::Pose3 pose3, const double length = 0.1,
-                          const double width = 2.0);
+VizPose GetVizPose(const gtsam::Pose3& pose3, const double length = 0.1,
+                   const double width = 2.0);
 
 /**
- * @brief Takes GTSAM pose object and returns as VizPose object
+ * @brief Takes GTSAM pose object and returns as VizPose object.
  *
  * @param pose2     GTSAM pose to convert to matrix form
- * @param length    length of the pose axes
- * @param width     width of the pose axes
+ * @param length    Length of the pose axes.
+ * @param width     Width of the pose axes.
  * @return VizPose
  */
-inline VizPose GetVizPose(const gtsam::Pose2 pose2, const double length = 0.1,
-                          const double width = 2.0);
+VizPose GetVizPose(const gtsam::Pose2& pose2, const double length = 0.1,
+                   const double width = 2.0);
 
-inline VizLandmark GetVizLandmark(const gtsam::Point2 landmark) {
-  VizLandmark v_landmark = Eigen::Vector3d::Zero();
-  v_landmark.block(0, 0, 2, 1) = landmark.matrix();
-  return v_landmark;
-}
+/**
+ * @brief Takes GTSAM 2D point and returns a corresponding 3D landmark vector.
+ *
+ * @param landmark  GTSAM 2D point.
+ * @return Corresponding 3D point on the XY plane (Z = 0).
+ */
+VizLandmark GetVizLandmark(const gtsam::Point2& landmark);
 
 /**
  * @brief Convert from gtsam::Point3 to VizLandmark
