@@ -9,7 +9,7 @@
 #define TONIOVIZ_DATAUTILS_H_
 
 #include <chrono>  //NOLINT
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <string>  //NOLINT [build/include_order]
 #include <vector>  //NOLINT [build/include_order]
 
