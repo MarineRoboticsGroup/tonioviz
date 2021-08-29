@@ -54,45 +54,30 @@ VizPose GetVizPose(const gtsam::Pose2& pose2, const double length = 0.1,
 VizLandmark GetVizLandmark(const gtsam::Point2& landmark);
 
 /**
- * @brief Convert from gtsam::Point3 to VizLandmark
+ * @brief Convert from gtsam::Point3 to VizLandmark.
  *
- * @param landmark
- * @return VizLandmark
+ * @param landmark  GTSAM 3D point.
+ * @return Corresponding 3D point.
  */
-inline VizLandmark GetVizLandmark(const gtsam::Point3 landmark) {
-  VizLandmark v_landmark = landmark.matrix();
-  return v_landmark;
-}
+VizLandmark GetVizLandmark(const gtsam::Point3& landmark);
 
 /**
- * @brief Convert from vector of gtsam::Point2 to vector of VizLandmarks
+ * @brief Convert from vector of gtsam::Point2 to vector of VizLandmarks.
  *
- * @param landmarks
- * @return std::vector<VizLandmark>
+ * @param landmarks  Vector of GTSAM 2D points.
+ * @return Vector of corresponding 3D points on the XY plane (Z = 0).
  */
-inline std::vector<VizLandmark> GetVizLandmarks(
-    const std::vector<gtsam::Point2> landmarks) {
-  std::vector<VizLandmark> v_landmarks;
-  for (size_t i = 0; i < landmarks.size(); i++) {
-    v_landmarks.emplace_back(GetVizLandmark(landmarks[i]));
-  }
-  return v_landmarks;
-}
+std::vector<VizLandmark> GetVizLandmarks(
+    const std::vector<gtsam::Point2>& landmarks);
 
 /**
- * @brief Convert from vector of gtsam::Point3 to vector of VizLandmarks
+ * @brief Convert from vector of gtsam::Point3 to vector of VizLandmarks.
  *
- * @param landmarks
- * @return std::vector<VizLandmark>
+ * @param landmarks  Vector of GTSAM 3D points.
+ * @return Vector of corresponding 3D points for visualization.
  */
-inline std::vector<VizLandmark> GetVizLandmarks(
-    const std::vector<gtsam::Point3> landmarks) {
-  std::vector<VizLandmark> v_landmarks;
-  for (size_t i = 0; i < landmarks.size(); i++) {
-    v_landmarks.emplace_back(GetVizLandmark(landmarks[i]));
-  }
-  return v_landmarks;
-}
+std::vector<VizLandmark> GetVizLandmarks(
+    const std::vector<gtsam::Point3>& landmarks);
 
 /**
  * @brief Builds vector of visualization poses to pass directly onto visualizer.

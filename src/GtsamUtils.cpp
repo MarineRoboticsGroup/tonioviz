@@ -36,6 +36,35 @@ VizLandmark GetVizLandmark(const gtsam::Point2& landmark) {
   return v_landmark;
 }
 
+/* ************************************************************************** */
+VizLandmark GetVizLandmark(const gtsam::Point3& landmark) {
+  VizLandmark v_landmark = landmark.matrix();
+  return v_landmark;
+}
+
+/* ************************************************************************** */
+std::vector<VizLandmark> GetVizLandmarks(
+    const std::vector<gtsam::Point2>& landmarks) {
+  std::vector<VizLandmark> v_landmarks;
+  v_landmarks.reserve(landmarks.size());
+  for (const gtsam::Point2& gtsam_landmark : landmarks) {
+    v_landmarks.emplace_back(GetVizLandmark(gtsam_landmark));
+  }
+  return v_landmarks;
+}
+
+/* ************************************************************************** */
+std::vector<VizLandmark> GetVizLandmarks(
+    const std::vector<gtsam::Point3>& landmarks) {
+  std::vector<VizLandmark> v_landmarks;
+  v_landmarks.reserve(landmarks.size());
+  for (const gtsam::Point3& gtsam_landmark : landmarks) {
+    v_landmarks.emplace_back(GetVizLandmark(gtsam_landmark));
+  }
+  return v_landmarks;
+}
+
+/* ************************************************************************** */
 std::vector<VizPose> GetVizPoses(const gtsam::Values& values,
                                  const double length, const double width,
                                  const unsigned char c, const bool is3d) {
