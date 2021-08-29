@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 # External package dependencies.
 find_package(Eigen3 3.3 REQUIRED)
 find_package(Pangolin REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 
 # Modularize into separate components.
 option(BUILD_GTSAM_UTILS "Build the GTSAM utilities module." ON)
@@ -38,7 +38,7 @@ if (BUILD_GTSAM_UTILS)
 endif()
 
 add_library(tonioviz STATIC ${TONIOVIZ_SRCS} ${TONIOVIZ_HDRS})
-target_include_directories(tonioviz PUBLIC include ${OpenCV_INCLUDE_DIRS})
+target_include_directories(tonioviz PUBLIC include)
 target_link_libraries(tonioviz PUBLIC ${TONIOVIZ_LIBS})
 target_compile_options(tonioviz PRIVATE -Wall)
 
