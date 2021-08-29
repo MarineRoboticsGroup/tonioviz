@@ -109,13 +109,13 @@ std::vector<VizPose> GetVizPoses(const gtsam::Values& values,
  *
  * NOTE: this assumes that all information provided is either a sequence of
  * poses or a vector of landmarks.
- *
  */
 void VisualizeGtsamEstimates(
-    const gtsam::Values vals,
-    std::vector<std::vector<gtsam::Symbol>> pose_symbols,
-    std::map<int, gtsam::Symbol> landmark_symbols, const bool is3d = true,
-    const bool animation = true, const size_t ms_wait = 50);
+    const gtsam::Values& vals,
+    const std::vector<std::vector<gtsam::Symbol>>& pose_symbols,
+    const std::map<int, gtsam::Symbol>& landmark_symbols,
+    const bool is3d = true, const bool animation = true,
+    const size_t ms_wait = 50);
 
 /**
  * @brief Reads data in gtsam estimate and plays poses inside of visualizer. Can
@@ -130,11 +130,11 @@ void VisualizeGtsamEstimates(
  * @param animation             whether to play as animation
  * @param ms_wait               how long to pause between frames
  */
-static void GtsamDataLoop(mrg::Visualizer* viz, gtsam::Values curr_estimate,
-                          std::vector<std::vector<gtsam::Symbol>> pose_symbols,
-                          std::map<int, gtsam::Symbol> landmark_symbols,
-                          const bool is3d, const bool animation,
-                          const size_t ms_wait);
+static void GtsamDataLoop(
+    mrg::Visualizer* viz, const gtsam::Values& curr_estimate,
+    const std::vector<std::vector<gtsam::Symbol>>& pose_symbols,
+    const std::map<int, gtsam::Symbol>& landmark_symbols, const bool is3d,
+    const bool animation, const size_t ms_wait);
 
 }  // namespace mrg
 
