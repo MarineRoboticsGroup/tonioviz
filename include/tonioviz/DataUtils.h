@@ -37,7 +37,13 @@ struct ImageDataset {
  */
 void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images);
 
-void VisualizeG2o(const std::string g2o_file);
+/**
+ * @brief TODO(alanpapalia) Describe me once implemented.
+ * @param[in]  g2o_file  Full path to file to be read.
+ * NOTE: @alanpapalia, remember to alwasy pass by const& whenever possible to
+ *       prevent copying objects all over the place.
+ */
+void VisualizeG2o(const std::string& g2o_file);
 
 }  // namespace mrg
 
