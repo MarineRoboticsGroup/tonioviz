@@ -5,16 +5,14 @@
  * Copyright 2021 The Ambitious Folks of the MRG
  */
 
-// NOLINTNEXTLINE
-#include <chrono>
-#include <fstream>
-#include <iostream>
-#include <thread>
-// NOLINTNEXTLINE
 #include <algorithm>
+#include <chrono>  //NOLINT [build/c++11]
+#include <fstream>
 #include <functional>
+#include <iostream>
 #include <iterator>
 #include <random>
+#include <thread>  //NOLINT [build/c++11]
 #include <vector>
 
 #include "tonioviz/Visualizer.h"

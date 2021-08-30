@@ -8,7 +8,7 @@
 
 #include "tonioviz/GtsamUtils.h"
 
-#include <thread>
+#include <thread>  //NOLINT [build/c++11]
 
 namespace mrg {
 
@@ -35,7 +35,6 @@ std::vector<VizPose> GetVizPoses(const gtsam::Values& values,
 
   size_t counter = 0;
   while (values.exists(gtsam::Symbol(c, counter))) {
-
     if (is3d) {  // gtsam::Pose3
       gtsam::Pose3 pose3 = values.at<gtsam::Pose3>(gtsam::Symbol(c, counter));
       vposes.push_back(GetVizPose(pose3, length, width));
@@ -69,13 +68,15 @@ void VisualizeGtsamEstimates(
   data_thread.join();  // Wait until both threads are finished.
 }
 
-static void GtsamDataLoop(mrg::Visualizer *viz, gtsam::Values curr_estimate,
-                   std::vector<std::vector<gtsam::Symbol>> pose_symbols,
-                   std::map<int, gtsam::Symbol> landmark_symbols, const bool is3d,
-                   const bool animation, const size_t ms_wait) {
+static void GtsamDataLoop(mrg::Visualizer* viz, gtsam::Values curr_estimate,
+                          std::vector<std::vector<gtsam::Symbol>> pose_symbols,
+                          std::map<int, gtsam::Symbol> landmark_symbols,
+                          const bool is3d, const bool animation,
+                          const size_t ms_wait) {
   gtsam::Symbol sym;
 
-  for(std::map<int, gtsam::Symbol>::iterator it = landmark_symbols.begin(); it != landmark_symbols.end(); it++){
+  for (std::map<int, gtsam::Symbol>::iterator it = landmark_symbols.begin();
+       it != landmark_symbols.end(); it++) {
     sym = it->second;
     if (is3d) {
       gtsam::Point3 point = curr_estimate.at<gtsam::Point3>(sym);
@@ -100,7 +101,7 @@ static void GtsamDataLoop(mrg::Visualizer *viz, gtsam::Values curr_estimate,
   // Add poses to visualizer
   for (size_t timestep = 0; timestep < num_timesteps; timestep++) {
     for (size_t robot = 0; robot < num_robots; robot++) {
-      if (viz->HasForcedQuit()){
+      if (viz->HasForcedQuit()) {
         return;
       }
       // don't try to add poses that don't exist

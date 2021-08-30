@@ -8,6 +8,11 @@
 ehthumbs.db
 [Tt]humbs.db
 
+# VS Code #
+###########
+.vscode
+*.code-workspace
+
 # Jupyter Notebooks #
 #####################
 .ipynb_checkpoints
@@ -88,6 +93,3 @@ build/
 .sass-cache/
 Gemfile.lock
 _site/
-
-
-

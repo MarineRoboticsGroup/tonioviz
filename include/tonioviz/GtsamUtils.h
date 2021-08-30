@@ -14,6 +14,7 @@
 #include <gtsam/nonlinear/Values.h>
 #include <gtsam/slam/dataset.h>
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -75,7 +76,6 @@ inline std::vector<VizLandmark> GetVizLandmarks(
   }
   return v_landmarks;
 }
-
 
 /**
  * @brief Convert from vector of gtsam::Point3 to vector of VizLandmarks

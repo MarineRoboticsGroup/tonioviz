@@ -1,20 +1,19 @@
 /**
  * @file GtsamExample1.cpp
- * @brief Quick GTSAM visualization test to check use of poses from GTSAM
+ * @brief Quick GTSAM visualization test to check use of poses from GTSAM. Uses
+ * conversion to convert all GTSAM objects to normal Viz objects
  * @author Tonio Teran, teran@mit.edu
  * @author Alan Papalia, apapalia@mit.edu
  * Copyright 2020 The Ambitious Folks of the MRG
  */
 
-// NOLINTNEXTLINE
-#include <chrono>
-#include <fstream>
-#include <iostream>
-// NOLINTNEXTLINE
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/inference/Symbol.h>
 
-#include <thread>
+#include <chrono>  // NOLINT [build/c++11]
+#include <fstream>
+#include <iostream>
+#include <thread>  // NOLINT [build/c++11]
 
 #include "tonioviz/GtsamUtils.h"
 #include "tonioviz/Visualizer.h"
@@ -22,6 +21,7 @@
 // Forwards declarations.
 void DataPlaybackLoop(mrg::Visualizer *viz);
 gtsam::Values GetDummyGtsamValues(const size_t size);
+thread_local unsigned int seed = time(NULL);
 
 int main() {
   // Create a sample visualizer object.
@@ -39,6 +39,10 @@ int main() {
   return 0;
 }
 
+double GetRandDouble(double low, double high) {
+  return (rand_r(&seed) % 100) / 100.0 * (high - low) + low;
+}
+
 /* ************************************************************************** */
 void DataPlaybackLoop(mrg::Visualizer *viz) {
   size_t counter = 0;
@@ -50,6 +54,13 @@ void DataPlaybackLoop(mrg::Visualizer *viz) {
 
     viz->Clear();  // Make sure to clear the visualizer first!!!
     viz->AddVizPoses(mrg::GetVizPoses(values));  // Add straight from gtsam.
+
+    const double x = GetRandDouble(-10, 10);
+    const double y = GetRandDouble(-10, 10);
+    const double r = GetRandDouble(1, 10);
+
+    mrg::Circle c = {x, y, r};
+    viz->AddRangeMeasurement(c);
 
     std::this_thread::sleep_for(std::chrono::nanoseconds(50000000));
     counter++;
