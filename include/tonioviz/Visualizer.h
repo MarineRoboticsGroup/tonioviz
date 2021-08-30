@@ -20,7 +20,7 @@
 #include <vector>
 
 // OpenCV includes.
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 namespace mrg {
 
@@ -45,8 +45,7 @@ enum class KeyframeDrawType { kFrustum, kTriad, kPoint };
 enum class LandmarkDrawType { kCross, kPoint };
 
 /**
- * @brief Struct to hold circles for drawing.
- *
+ * @brief Struct to hold circles with radius `r` for drawing at (`x`,`y`).
  */
 struct Circle {
   double x, y, r;

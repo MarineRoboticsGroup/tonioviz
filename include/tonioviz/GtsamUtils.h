@@ -24,73 +24,60 @@
 namespace mrg {
 
 /**
- * @brief Takes GTSAM pose object and returns as VizPose object
+ * @brief Takes GTSAM pose object and returns as VizPose object.
  *
- * @param pose3     GTSAM pose to convert to matrix form
- * @param length    length of the pose axes
- * @param width     width of the pose axes
+ * @param pose3     GTSAM pose to convert to matrix form.
+ * @param length    Length of the pose axes.
+ * @param width     Width of the pose axes.
  * @return VizPose
  */
-inline VizPose GetVizPose(const gtsam::Pose3 pose3, const double length = 0.1,
-                          const double width = 2.0);
+VizPose GetVizPose(const gtsam::Pose3& pose3, const double length = 0.1,
+                   const double width = 2.0);
 
 /**
- * @brief Takes GTSAM pose object and returns as VizPose object
+ * @brief Takes GTSAM pose object and returns as VizPose object.
  *
  * @param pose2     GTSAM pose to convert to matrix form
- * @param length    length of the pose axes
- * @param width     width of the pose axes
+ * @param length    Length of the pose axes.
+ * @param width     Width of the pose axes.
  * @return VizPose
  */
-inline VizPose GetVizPose(const gtsam::Pose2 pose2, const double length = 0.1,
-                          const double width = 2.0);
-
-inline VizLandmark GetVizLandmark(const gtsam::Point2 landmark) {
-  VizLandmark v_landmark = Eigen::Vector3d::Zero();
-  v_landmark.block(0, 0, 2, 1) = landmark.matrix();
-  return v_landmark;
-}
+VizPose GetVizPose(const gtsam::Pose2& pose2, const double length = 0.1,
+                   const double width = 2.0);
 
 /**
- * @brief Convert from gtsam::Point3 to VizLandmark
+ * @brief Takes GTSAM 2D point and returns a corresponding 3D landmark vector.
  *
- * @param landmark
- * @return VizLandmark
+ * @param landmark  GTSAM 2D point.
+ * @return Corresponding 3D point on the XY plane (Z = 0).
  */
-inline VizLandmark GetVizLandmark(const gtsam::Point3 landmark) {
-  VizLandmark v_landmark = landmark.matrix();
-  return v_landmark;
-}
+VizLandmark GetVizLandmark(const gtsam::Point2& landmark);
 
 /**
- * @brief Convert from vector of gtsam::Point2 to vector of VizLandmarks
+ * @brief Convert from gtsam::Point3 to VizLandmark.
  *
- * @param landmarks
- * @return std::vector<VizLandmark>
+ * @param landmark  GTSAM 3D point.
+ * @return Corresponding 3D point.
  */
-inline std::vector<VizLandmark> GetVizLandmarks(
-    const std::vector<gtsam::Point2> landmarks) {
-  std::vector<VizLandmark> v_landmarks;
-  for (size_t i = 0; i < landmarks.size(); i++) {
-    v_landmarks.emplace_back(GetVizLandmark(landmarks[i]));
-  }
-  return v_landmarks;
-}
+VizLandmark GetVizLandmark(const gtsam::Point3& landmark);
 
 /**
- * @brief Convert from vector of gtsam::Point3 to vector of VizLandmarks
+ * @brief Convert from vector of gtsam::Point2 to vector of VizLandmarks.
  *
- * @param landmarks
- * @return std::vector<VizLandmark>
+ * @param landmarks  Vector of GTSAM 2D points.
+ * @return Vector of corresponding 3D points on the XY plane (Z = 0).
  */
-inline std::vector<VizLandmark> GetVizLandmarks(
-    const std::vector<gtsam::Point3> landmarks) {
-  std::vector<VizLandmark> v_landmarks;
-  for (size_t i = 0; i < landmarks.size(); i++) {
-    v_landmarks.emplace_back(GetVizLandmark(landmarks[i]));
-  }
-  return v_landmarks;
-}
+std::vector<VizLandmark> GetVizLandmarks(
+    const std::vector<gtsam::Point2>& landmarks);
+
+/**
+ * @brief Convert from vector of gtsam::Point3 to vector of VizLandmarks.
+ *
+ * @param landmarks  Vector of GTSAM 3D points.
+ * @return Vector of corresponding 3D points for visualization.
+ */
+std::vector<VizLandmark> GetVizLandmarks(
+    const std::vector<gtsam::Point3>& landmarks);
 
 /**
  * @brief Builds vector of visualization poses to pass directly onto visualizer.
@@ -122,13 +109,13 @@ std::vector<VizPose> GetVizPoses(const gtsam::Values& values,
  *
  * NOTE: this assumes that all information provided is either a sequence of
  * poses or a vector of landmarks.
- *
  */
 void VisualizeGtsamEstimates(
-    const gtsam::Values vals,
-    std::vector<std::vector<gtsam::Symbol>> pose_symbols,
-    std::map<int, gtsam::Symbol> landmark_symbols, const bool is3d = true,
-    const bool animation = true, const size_t ms_wait = 50);
+    const gtsam::Values& vals,
+    const std::vector<std::vector<gtsam::Symbol>>& pose_symbols,
+    const std::map<int, gtsam::Symbol>& landmark_symbols,
+    const bool is3d = true, const bool animation = true,
+    const size_t ms_wait = 50);
 
 /**
  * @brief Reads data in gtsam estimate and plays poses inside of visualizer. Can
@@ -143,11 +130,11 @@ void VisualizeGtsamEstimates(
  * @param animation             whether to play as animation
  * @param ms_wait               how long to pause between frames
  */
-static void GtsamDataLoop(mrg::Visualizer* viz, gtsam::Values curr_estimate,
-                          std::vector<std::vector<gtsam::Symbol>> pose_symbols,
-                          std::map<int, gtsam::Symbol> landmark_symbols,
-                          const bool is3d, const bool animation,
-                          const size_t ms_wait);
+static void GtsamDataLoop(
+    mrg::Visualizer* viz, const gtsam::Values& curr_estimate,
+    const std::vector<std::vector<gtsam::Symbol>>& pose_symbols,
+    const std::map<int, gtsam::Symbol>& landmark_symbols, const bool is3d,
+    const bool animation, const size_t ms_wait);
 
 }  // namespace mrg
 

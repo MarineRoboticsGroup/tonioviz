@@ -22,7 +22,7 @@ Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
   p_.imgwidth = p_.imgwidth / 4 * 4;
   p_.imgheight = p_.imgheight / 4 * 4;
 
-  // initialize pose vector with empty vector of poses
+  // Initialize pose vector with empty vector of poses.
   pose_vectors_.emplace_back(std::vector<VizPose>());
 }
 
@@ -56,7 +56,7 @@ void Visualizer::RenderWorld() {
 
   // Real-time toggles using key presses.
   bool show_z0 = true;
-  // Toggle between drawing the origin
+  // Toggle between drawing the origin.
   pangolin::RegisterKeyPressCallback('z', [&]() { show_z0 = !show_z0; });
   // Toggle between drawing only the latest keyframe or full pose history.
   pangolin::RegisterKeyPressCallback('l',
@@ -148,10 +148,12 @@ void Visualizer::RenderWorld() {
   }
 }
 
+/* ************************************************************************** */
 void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes) {
   for (const auto& vpose : vposes) pose_vectors_[0].push_back(vpose);
 }
 
+/* ************************************************************************** */
 void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind) {
   for (const auto& vpose : vposes) pose_vectors_[traj_ind].push_back(vpose);
 }
@@ -162,6 +164,7 @@ void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
   AddVizPose(std::make_tuple(pose, length, width));
 }
 
+/* ************************************************************************** */
 void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
                             const double width, int traj_ind) {
   AddVizPose(std::make_tuple(pose, length, width), traj_ind);
@@ -175,6 +178,7 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
   }
 }
 
+/* ************************************************************************** */
 void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
                              const double width, int traj_ind) {
   for (const Eigen::Matrix4d& pose : poses) {
@@ -183,7 +187,6 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
 }
 
 /* ************************************************************************** */
-
 void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
   for (const auto& vl : landmarks) landmarks_.push_back(vl);
 }

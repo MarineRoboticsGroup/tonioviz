@@ -37,6 +37,8 @@ void LoadImages(const ImageDataset& ds, std::vector<cv::Mat>* images) {
   }
 }
 
-void VisualizeG2o(const std::string g2o_file) {}
+void VisualizeG2o(const std::string& g2o_file) {
+  // TODO(alanpapalia) Implement me or delete me.
+}
 
 }  // namespace mrg
