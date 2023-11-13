@@ -19,6 +19,10 @@ set(TONIOVIZ_SRCS
 set(TONIOVIZ_HDRS
   include/tonioviz/DataUtils.h
   include/tonioviz/Visualizer.h)
+set(TONIOVIZ_INCLUDE_DIRS
+  include
+  ${Pangolin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS})
 set(TONIOVIZ_LIBS
   ${Pangolin_LIBRARIES}
   ${OpenCV_LIBS}
@@ -37,9 +41,10 @@ if (BUILD_GTSAM_UTILS)
     gtsam)
 endif()
 
-add_library(tonioviz STATIC ${TONIOVIZ_SRCS} ${TONIOVIZ_HDRS})
-target_include_directories(tonioviz PUBLIC include)
+add_library(tonioviz SHARED ${TONIOVIZ_SRCS} ${TONIOVIZ_HDRS})
+target_include_directories(tonioviz PUBLIC ${TONIOVIZ_INCLUDE_DIRS})
 target_link_libraries(tonioviz PUBLIC ${TONIOVIZ_LIBS})
+
 target_compile_options(tonioviz PRIVATE -Wall)
 
 # Make library reachable by other cmake projects.
