@@ -11,7 +11,7 @@ find_package(OpenCV 4 REQUIRED)
 
 # Modularize into separate components.
 option(BUILD_GTSAM_UTILS "Build the GTSAM utilities module." ON)
-
+option(BUILD_EXAMPLES "Build the examples." OFF)
 # Create library.
 set(TONIOVIZ_SRCS
   src/DataUtils.cpp
@@ -51,8 +51,10 @@ target_compile_options(tonioviz PRIVATE -Wall)
 export(PACKAGE tonioviz)
 export(TARGETS tonioviz FILE toniovizConfig.cmake)
 
-# Build a bunch of useful examples.
-add_subdirectory(examples)
+if (BUILD_EXAMPLES)
+  # Build a bunch of useful examples.
+  add_subdirectory(examples)
+endif ()
 
 # Include unit tests directory to the project.
 enable_testing()
