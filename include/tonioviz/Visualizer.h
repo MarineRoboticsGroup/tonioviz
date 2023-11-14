@@ -43,11 +43,11 @@ enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
  */
 enum class KeyframeDrawType { kFrustum, kTriad, kPoint };
 enum class LandmarkDrawType { kCross, kPoint };
-
+enum class RangeDrawType {kCircle, kLine};
 /**
  * @brief Struct to hold circles with radius `r` for drawing at (`x`,`y`).
  */
-struct Circle {
+struct Range {
   double x, y, r;
 };
 
@@ -66,6 +66,7 @@ struct VisualizerParams {
 
   KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
   LandmarkDrawType landtype = LandmarkDrawType::kPoint;  ///< Landmark type.
+  RangeDrawType rangetype = RangeDrawType::kCircle;  ///< Range type.
   bool onlylatest = false;     ///< Draw only the most recent keyframe.
   double frustum_scale = 0.1;  ///< Size of frustum [m].
 };
@@ -95,7 +96,7 @@ class Visualizer {
    */
   void RenderWorld();
 
-  inline void AddRangeMeasurement(const Circle c) { circles_.push_back(c); }
+  inline void AddRangeMeasurement(const Range c) { ranges_.push_back(c); }
 
   /**
    * @brief Add a visualization pose element.
@@ -239,6 +240,7 @@ class Visualizer {
         pangolin::glDrawCross(vl, rad);
       }
     } else if (p_.landtype == LandmarkDrawType::kPoint) {
+      glPointSize(2.0);
       pangolin::glDrawPoints(landmarks);
     } else {
       std::cerr << "Attempted landmark visualization is not supported"
@@ -251,15 +253,15 @@ class Visualizer {
 
   inline void DrawLandmarks() const { DrawLandmarks(landmarks_); }
 
-  inline void DrawCircles() const { DrawCircles(circles_); }
+  inline void DrawRanges() const { DrawRanges(ranges_); }
 
-  inline void DrawCircles(std::vector<Circle> circles) const {
-    for (const Circle c : circles) {
-      DrawCircle(c);
+  inline void DrawRanges(std::vector<Range> circles) const {
+    for (const Range c : circles) {
+      DrawRange(c);
     }
   }
 
-  inline void DrawCircle(Circle c) const {
+  inline void DrawRange(Range c) const {
     pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
   }
 
@@ -272,7 +274,7 @@ class Visualizer {
   std::vector<std::vector<VizPose>>
       pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
   std::vector<VizLandmark> landmarks_;
-  std::vector<Circle> circles_;
+  std::vector<Range> ranges_;
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.
