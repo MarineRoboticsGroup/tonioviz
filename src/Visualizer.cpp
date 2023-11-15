@@ -109,14 +109,14 @@ void Visualizer::RenderWorld() {
       for (uint i = 0; i < pose_vectors_.size(); i++) {
         DrawTrajectory(pose_vectors_[i]);
       }
-      DrawLandmarks(landmarks_);
+      DrawLandmarks(landmarks_, p_.landmark_color);
     }
 
-    DrawRanges();
+    DrawRanges(ranges_, p_.range_color);
 
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
-    if (show_z0) pangolin::glDraw_z0(1.0, 2);
+    if (show_z0) pangolin::glDraw_z0(1.0, 20);
     glLineWidth(7.5);
     if (show_z0) pangolin::glDrawAxis(I_4x4, 0.11);
     glLineWidth(1.0);

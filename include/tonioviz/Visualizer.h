@@ -33,6 +33,8 @@ typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 /// 3D Position of landmark
 typedef Eigen::Vector3d VizLandmark;
 
+typedef std::tuple<float, float, float> Color;
+
 /**
  * @brief Type of visualization modes available.
  */
@@ -79,6 +81,9 @@ struct VisualizerParams {
   RangeDrawType rangetype = RangeDrawType::kCircle;      ///< Range type.
   bool onlylatest = false;     ///< Draw only the most recent keyframe.
   double frustum_scale = 0.1;  ///< Size of frustum [m].
+
+  Color landmark_color{1.0, 0, 0};
+  Color range_color{0, 1.0, 0};
 };
 
 /**
@@ -241,9 +246,10 @@ class Visualizer {
    */
   void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
-  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks) const {
+  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks, Color color=std::make_tuple(1.0, 0, 0)) const {
     // Draw all landmarks
-    glColor3f(1.0f, 0.0, 0.0);
+    glColor3f(std::get<0>(color), std::get<1>(color), std::get<2>(color));
+    glLineWidth(2.0);
     double rad = 0.25;
     if (p_.landtype == LandmarkDrawType::kCross) {
       for (const VizLandmark& vl : landmarks) {
@@ -265,18 +271,17 @@ class Visualizer {
 
   inline void DrawRanges() const { DrawRanges(ranges_); }
 
-  inline void DrawRanges(std::vector<Range> circles) const {
+  inline void DrawRanges(std::vector<Range> circles, Color color = std::make_tuple(0, 1, 0)) const {
     for (const Range c : circles) {
-      DrawRange(c);
+      DrawRange(c, color);
     }
   }
 
-  inline void DrawRange(Range c) const {
+  inline void DrawRange(Range c, Color color) const {
+    glColor3f(std::get<0>(color), std::get<1>(color), std::get<2>(color));
     if (p_.rangetype == RangeDrawType::kCircle) {
-      glColor3f(0.0f, 1.0f, 0.0f);
       pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
     } else if (p_.rangetype == RangeDrawType::kLine && c.has_p2) {
-      glColor3f(0.0f, 1.0f, 0.0f);
       Eigen::Vector2d p2_vec(c.p2.first, c.p2.second);
       Eigen::Vector2d c_vec(c.x, c.y);
       // Set the length of the line to be the range
