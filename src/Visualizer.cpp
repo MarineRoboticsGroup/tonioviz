@@ -310,7 +310,12 @@ void Visualizer::registerPangolinCallback(char key, std::string description,
  * @return x_min, y_min, x_max, y_max
  */
 void Visualizer::updateXYRange() {
-  Eigen::MatrixXd points(landmarks_.size() + num_poses, 2);
+  auto num_points = landmarks_.size() + num_poses;
+  if (num_points == 0) {
+    return;
+  }
+
+  Eigen::MatrixXd points(num_points, 2);
 
   auto row_idx{0};
   for (auto& landmark : landmarks_){

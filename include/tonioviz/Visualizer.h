@@ -193,12 +193,17 @@ class Visualizer {
   inline VisualizerParams Params() const { return p_; }
 
   /**
-   * @brief Clears all the stored visualized poses.
+   * @brief Clears all the stored information.
    */
   inline void Clear() {
-    for (uint i = 0; i < pose_vectors_.size(); i++) {
-      pose_vectors_[i].clear();
+
+    for (auto & pose_vector : pose_vectors_) {
+      pose_vector.clear();
     }
+    pose_vectors_.clear();
+    landmarks_.clear();
+    ranges_.clear();
+    xy_range_.setZero();
     updateXYRange();
   }
 
