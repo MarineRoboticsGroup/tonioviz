@@ -116,9 +116,26 @@ void Visualizer::RenderWorld() {
 
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
-    if (show_z0) pangolin::glDraw_z0(1.0, 20);
-    glLineWidth(7.5);
-    if (show_z0) pangolin::glDrawAxis(I_4x4, 0.11);
+    if (show_z0) {
+      // Find the element furthest away from origin and draw a ground plane at least as large
+      double furthest_element{0};
+
+      for (auto& landmark : landmarks_) {
+        furthest_element = std::max({furthest_element, landmark(0), landmark(1)});
+      }
+      for (auto& pose_vec: pose_vectors_) {
+        for (auto& pose : pose_vec) {
+          auto pose_mat = std::get<0>(pose);
+          furthest_element = std::max({furthest_element, pose_mat(0, 3), pose_mat(1, 3)});
+        }
+      }
+
+      pangolin::glDraw_z0(1.0, std::ceil(furthest_element));
+
+      glLineWidth(7.5);
+      pangolin::glDrawAxis(I_4x4, 0.11);
+    }
+
     glLineWidth(1.0);
 
     // ----------------
