@@ -121,19 +121,7 @@ void Visualizer::RenderWorld() {
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
     if (show_z0) {
-      // Find the element furthest away from origin and draw a ground plane at least as large
-      double furthest_element{0};
-
-      for (auto& landmark : landmarks_) {
-        furthest_element = std::max({furthest_element, landmark(0), landmark(1)});
-      }
-      for (auto& pose_vec: pose_vectors_) {
-        for (auto& pose : pose_vec) {
-          auto pose_mat = std::get<0>(pose);
-          furthest_element = std::max({furthest_element, pose_mat(0, 3), pose_mat(1, 3)});
-        }
-      }
-
+      auto furthest_element = getXYRange().rowwise().norm().maxCoeff();
       pangolin::glDraw_z0(1.0, std::ceil(furthest_element));
 
       glLineWidth(7.5);
@@ -336,6 +324,32 @@ void Visualizer::registerPangolinCallback(char key, std::string description,
   }
   keybinds_[key] = std::move(description);
   pangolin::RegisterKeyPressCallback(key, std::move(callback));
+}
+
+/**
+ * @brief Get the bounding rectangle of poses and landmarks in the xy plane
+ * @return x_min, y_min, x_max, y_max
+ */
+Eigen::Vector4d Visualizer::getXYRange() const {
+  Eigen::MatrixXd points(landmarks_.size() + pose_vectors_.size(), 2);
+
+  auto row_idx{0};
+  for (auto& landmark : landmarks_){
+    points.row(row_idx) << landmark.block(0, 0, 2, 1).transpose();
+    row_idx++;
+  }
+  for (auto& pose_vec: pose_vectors_) {
+    for (auto& pose : pose_vec) {
+      points.row(row_idx) << std::get<0>(pose).block(0, 3, 2, 1).transpose();
+      row_idx++;
+    }
+  }
+
+  Eigen::Vector4d xy_range;
+  xy_range.block(0, 0, 2, 1) = points.colwise().minCoeff().transpose();
+  xy_range.block(2, 0, 2, 1) = points.colwise().maxCoeff().transpose();
+
+  return xy_range;
 }
 
 }  // namespace mrg

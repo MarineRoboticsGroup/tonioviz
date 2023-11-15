@@ -299,6 +299,8 @@ class Visualizer {
 
   void registerPangolinCallback(char key, std::string description, std::function<void(void)> callback);
 
+  Eigen::Vector4d getXYRange() const;
+
   void DrawHelp() const;
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
