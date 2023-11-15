@@ -271,8 +271,8 @@ class Visualizer {
 
   inline void DrawRanges() const { DrawRanges(ranges_); }
 
-  inline void DrawRanges(std::vector<Range> circles, Color color = std::make_tuple(0, 1, 0)) const {
-    for (const Range c : circles) {
+  inline void DrawRanges(std::vector<Range> ranges, Color color = std::make_tuple(0, 1, 0)) const {
+    for (const Range c : ranges) {
       DrawRange(c, color);
     }
   }
