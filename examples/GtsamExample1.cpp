@@ -59,7 +59,7 @@ void DataPlaybackLoop(mrg::Visualizer *viz) {
     const double y = GetRandDouble(-10, 10);
     const double r = GetRandDouble(1, 10);
 
-    mrg::Circle c = {x, y, r};
+    mrg::Range c = {x, y, r};
     viz->AddRangeMeasurement(c);
 
     std::this_thread::sleep_for(std::chrono::nanoseconds(50000000));

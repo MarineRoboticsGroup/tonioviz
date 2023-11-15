@@ -112,7 +112,7 @@ void Visualizer::RenderWorld() {
       DrawLandmarks(landmarks_);
     }
 
-    DrawCircles();
+    DrawRanges();
 
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);

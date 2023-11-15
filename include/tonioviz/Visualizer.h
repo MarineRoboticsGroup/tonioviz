@@ -43,12 +43,22 @@ enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
  */
 enum class KeyframeDrawType { kFrustum, kTriad, kPoint };
 enum class LandmarkDrawType { kCross, kPoint };
-
+enum class RangeDrawType { kCircle, kLine };
 /**
  * @brief Struct to hold circles with radius `r` for drawing at (`x`,`y`).
  */
-struct Circle {
-  double x, y, r;
+struct Range {
+  double x;
+  double y;
+  double r;
+
+  // Optional params for drawing as a line
+  std::pair<double, double> p2;
+  bool has_p2;
+
+  Range(double x, double y, double r) : x(x), y(y), r(r), has_p2(false){};
+  Range(double x, double y, double r, double x2, double y2)
+      : x(x), y(y), r(r), p2(std::make_pair(x2, y2)), has_p2(true){};
 };
 
 /**
@@ -66,6 +76,7 @@ struct VisualizerParams {
 
   KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
   LandmarkDrawType landtype = LandmarkDrawType::kPoint;  ///< Landmark type.
+  RangeDrawType rangetype = RangeDrawType::kCircle;      ///< Range type.
   bool onlylatest = false;     ///< Draw only the most recent keyframe.
   double frustum_scale = 0.1;  ///< Size of frustum [m].
 };
@@ -95,7 +106,7 @@ class Visualizer {
    */
   void RenderWorld();
 
-  inline void AddRangeMeasurement(const Circle c) { circles_.push_back(c); }
+  inline void AddRangeMeasurement(const Range c) { ranges_.push_back(c); }
 
   /**
    * @brief Add a visualization pose element.
@@ -239,6 +250,7 @@ class Visualizer {
         pangolin::glDrawCross(vl, rad);
       }
     } else if (p_.landtype == LandmarkDrawType::kPoint) {
+      glPointSize(2.0);
       pangolin::glDrawPoints(landmarks);
     } else {
       std::cerr << "Attempted landmark visualization is not supported"
@@ -251,16 +263,30 @@ class Visualizer {
 
   inline void DrawLandmarks() const { DrawLandmarks(landmarks_); }
 
-  inline void DrawCircles() const { DrawCircles(circles_); }
+  inline void DrawRanges() const { DrawRanges(ranges_); }
 
-  inline void DrawCircles(std::vector<Circle> circles) const {
-    for (const Circle c : circles) {
-      DrawCircle(c);
+  inline void DrawRanges(std::vector<Range> circles) const {
+    for (const Range c : circles) {
+      DrawRange(c);
     }
   }
 
-  inline void DrawCircle(Circle c) const {
-    pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
+  inline void DrawRange(Range c) const {
+    if (p_.rangetype == RangeDrawType::kCircle) {
+      glColor3f(0.0f, 1.0f, 0.0f);
+      pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
+    } else if (p_.rangetype == RangeDrawType::kLine && c.has_p2) {
+      glColor3f(0.0f, 1.0f, 0.0f);
+      Eigen::Vector2d p2_vec(c.p2.first, c.p2.second);
+      Eigen::Vector2d c_vec(c.x, c.y);
+      // Set the length of the line to be the range
+      Eigen::Vector2d p2_with_range((p2_vec - c_vec).normalized() * c.r +
+                                    c_vec);
+      pangolin::glDrawLine(c.x, c.y, p2_with_range.x(), p2_with_range.y());
+    } else {
+      throw std::runtime_error(
+          "Attempted range visualization is not supported");
+    }
   }
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
@@ -272,7 +298,7 @@ class Visualizer {
   std::vector<std::vector<VizPose>>
       pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
   std::vector<VizLandmark> landmarks_;
-  std::vector<Circle> circles_;
+  std::vector<Range> ranges_;
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.
