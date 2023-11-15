@@ -80,7 +80,18 @@ void Visualizer::RenderWorld() {
   registerPangolinCallback('m', "Show trajectory and landmarks",[&]() { show_manual = !show_manual; });
   registerPangolinCallback('h', "Show help message", [&]() { p_.showhelp = !p_.showhelp; });
   registerPangolinCallback('r', "Show range measurements", [&]() { p_.showranges = !p_.showranges; });
-  registerPangolinCallback('f', "Reset view", [&]() {s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));});
+  registerPangolinCallback('f', "Reset view", [&]() {
+    Eigen::Map<Eigen::Matrix2d> xy_points(getXYRange().data(), 2, 2);
+    auto view_center = xy_points.colwise().mean().transpose(); // 2x1 center of camera view
+    auto view_range = (xy_points.colwise().maxCoeff() - xy_points.colwise().minCoeff()).transpose(); // 2x1 range of camera view
+    std::cout << xy_points << std::endl;
+    auto z_w = 2 * view_range(0) * p_.f / p_.w; // Z to capture all of x
+    auto z_h  = 2 * view_range(1) * p_.f / p_.h; // Z to capture all of y
+
+    auto z = std::max(z_w, z_h);
+
+    s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(view_center(0),  view_center(1), z, view_center(0), view_center(1), 0.0, pangolin::AxisY));
+  });
   // Manage the size of the points.
   glPointSize(3.5);  // Default is 1.
   // Useful identity.
