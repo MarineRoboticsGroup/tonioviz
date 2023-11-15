@@ -22,9 +22,6 @@ Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
   // for more details: https://github.com/stevenlovegrove/Pangolin/issues/590.
   p_.imgwidth = p_.imgwidth / 4 * 4;
   p_.imgheight = p_.imgheight / 4 * 4;
-
-  // Initialize pose vector with empty vector of poses.
-  pose_vectors_.emplace_back(std::vector<VizPose>());
 }
 
 /* *************************************************************************  */
@@ -79,7 +76,7 @@ void Visualizer::RenderWorld() {
   registerPangolinCallback('h', "Show help message", [&]() { vis_state.show_help = !vis_state.show_help; });
   registerPangolinCallback('r', "Show range measurements", [&]() {vis_state.show_ranges = !vis_state.show_ranges; });
   registerPangolinCallback('f', "Set view to fit all objects", [&]() {
-    Eigen::Map<Eigen::Matrix2d> xy_points(getXYRange().data(), 2, 2);
+    Eigen::Map<Eigen::Matrix2d> xy_points(xy_range_.data(), 2, 2);
     auto view_center = xy_points.rowwise().mean(); // 2x1 center of camera view
     auto view_range = (xy_points.rowwise().maxCoeff() - xy_points.rowwise().minCoeff()); // 2x1 range of camera view
     auto z_w = view_range(1) * p_.f / p_.w; // Since we are using X-up, we need to use the width to capture all of y
@@ -131,7 +128,7 @@ void Visualizer::RenderWorld() {
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
     if (vis_state.show_z0) {
-      auto furthest_element = getXYRange().rowwise().norm().maxCoeff();
+      auto furthest_element = xy_range_.rowwise().norm().maxCoeff();
       pangolin::glDraw_z0(1.0, std::ceil(furthest_element));
 
       glLineWidth(7.5);
@@ -170,33 +167,17 @@ void Visualizer::RenderWorld() {
 }
 
 /* ************************************************************************** */
-void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes) {
-  for (const auto& vpose : vposes) pose_vectors_[0].push_back(vpose);
-}
-
-/* ************************************************************************** */
 void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind) {
+  while (static_cast<int>(pose_vectors_.size()) <= traj_ind) pose_vectors_.emplace_back();
   for (const auto& vpose : vposes) pose_vectors_[traj_ind].push_back(vpose);
-}
-
-/* ************************************************************************** */
-void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                            const double width) {
-  AddVizPose(std::make_tuple(pose, length, width));
+  num_poses += static_cast<int>(vposes.size());
+  updateXYRange();
 }
 
 /* ************************************************************************** */
 void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
                             const double width, int traj_ind) {
   AddVizPose(std::make_tuple(pose, length, width), traj_ind);
-}
-
-/* ************************************************************************** */
-void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
-                             const double width) {
-  for (const Eigen::Matrix4d& pose : poses) {
-    AddVizPose(std::make_tuple(pose, length, width));
-  }
 }
 
 /* ************************************************************************** */
@@ -210,6 +191,7 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
 /* ************************************************************************** */
 void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
   for (const auto& vl : landmarks) landmarks_.push_back(vl);
+  updateXYRange();
 }
 
 /* ************************************************************************** */
@@ -327,7 +309,7 @@ void Visualizer::registerPangolinCallback(char key, std::string description,
  * @brief Get the bounding rectangle of poses and landmarks in the xy plane
  * @return x_min, y_min, x_max, y_max
  */
-Eigen::Vector4d Visualizer::getXYRange() const {
+void Visualizer::updateXYRange() {
   Eigen::MatrixXd points(landmarks_.size() + num_poses, 2);
 
   auto row_idx{0};
@@ -342,11 +324,8 @@ Eigen::Vector4d Visualizer::getXYRange() const {
     }
   }
 
-  Eigen::Vector4d xy_range;
-  xy_range.block(0, 0, 2, 1) = points.colwise().minCoeff().transpose();
-  xy_range.block(2, 0, 2, 1) = points.colwise().maxCoeff().transpose();
-
-  return xy_range;
+  xy_range_.block(0, 0, 2, 1) = points.colwise().minCoeff().transpose();
+  xy_range_.block(2, 0, 2, 1) = points.colwise().maxCoeff().transpose();
 }
 
 }  // namespace mrg

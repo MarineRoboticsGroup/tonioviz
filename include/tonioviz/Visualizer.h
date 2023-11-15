@@ -123,33 +123,12 @@ class Visualizer {
   inline void AddRangeMeasurement(const Range c) { ranges_.push_back(c); }
 
   /**
-   * @brief Add a visualization pose element.
-   * @param[in] vpose   Visualization tuple with pose, axes length, and width.
-   */
-  inline void AddVizPose(const VizPose& vpose) {
-    AddVizPose(vpose, 0);
-  }
-
-  /**
    * @brief Add a visualization pose element. For multiple trajectories.
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
-  inline void AddVizPose(const VizPose& vpose, uint traj_ind) {
-    while (pose_vectors_.size() <= traj_ind) {
-      pose_vectors_.emplace_back(std::vector<VizPose>());
-    }
-    num_poses++;
-    pose_vectors_[traj_ind].push_back(vpose);
+  inline void AddVizPose(const VizPose& vpose, int traj_ind = 0) {
+    AddVizPoses({vpose}, traj_ind);
   }
-
-  /**
-   * @brief Add a visualization pose element; overload with individual elements.
-   * @param[in] pose     3D pose of triad to visualize.
-   * @param[in] length   Length of the pose axes.
-   * @param[in] width    Width of the pose axes..
-   */
-  void AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                  const double width);
 
   /**
    * @brief Add a visualization pose element; overload with individual elements.
@@ -159,29 +138,14 @@ class Visualizer {
    * @param[in] width    Width of the pose axes..
    */
   void AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                  const double width, int traj_ind);
-
-  /**
-   * @brief Same as above, but for multiple poses at a time..
-   * @param[in] vposes   Vector of visualization poses.
-   */
-  void AddVizPoses(const std::vector<VizPose>& vposes);
+                  const double width, int traj_ind = 0);
 
   /**
    * @brief Same as above, but for multiple poses at a time. For multiple
    * trajectories.
    * @param[in] vposes   Vector of visualization poses.
    */
-  void AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind);
-
-  /**
-   * @brief Same as above, but for multiple poses at the same time..
-   * @param[in] poses    Vector of 3D poses to visualize.
-   * @param[in] length   Length of the pose axes.
-   * @param[in] width    Width of the pose axes.
-   */
-  void AddVizPoses(const Trajectory3& poses, const double length,
-                   const double width);
+  void AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind = 0);
 
   /**
    * @brief Same as above, but for multiple poses at the same time. For multiple
@@ -191,7 +155,7 @@ class Visualizer {
    * @param[in] width    Width of the pose axes.
    */
   void AddVizPoses(const Trajectory3& poses, const double length,
-                   const double width, int traj_ind);
+                   const double width, int traj_ind = 0);
 
   /**
    * @brief Adds a landmark to be visualized
@@ -199,7 +163,7 @@ class Visualizer {
    * @param vl landmark
    */
   inline void AddVizLandmark(const VizLandmark& vl) {
-    landmarks_.push_back(vl);
+    AddVizLandmarks({vl});
   }
 
   /**
@@ -235,6 +199,7 @@ class Visualizer {
     for (uint i = 0; i < pose_vectors_.size(); i++) {
       pose_vectors_[i].clear();
     }
+    updateXYRange();
   }
 
   /**
@@ -307,11 +272,12 @@ class Visualizer {
   void registerPangolinCallback(char key, std::string description, std::function<void(void)> callback);
 
   VisualizerState vis_state;
-  Eigen::Vector4d getXYRange() const;
+  void updateXYRange();
 
   void DrawHelp() const;
 
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
+  Eigen::Vector4d xy_range_{0, 0, 0, 0};
 
   std::map<char, std::string> keybinds_;
 
