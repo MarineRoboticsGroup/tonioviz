@@ -8,6 +8,7 @@
 #include "tonioviz/Visualizer.h"
 
 #include <Eigen/StdVector>
+#include <utility>
 
 namespace mrg {
 
@@ -57,28 +58,29 @@ void Visualizer::RenderWorld() {
   // Real-time toggles using key presses.
   bool show_z0 = true;
   // Toggle between drawing the origin.
-  pangolin::RegisterKeyPressCallback('z', [&]() { show_z0 = !show_z0; });
+  registerPangolinCallback('z', "Draw the origin and ground plane", [&]() { show_z0 = !show_z0; });
   // Toggle between drawing only the latest keyframe or full pose history.
-  pangolin::RegisterKeyPressCallback('l',
+  registerPangolinCallback('l', "Show only the latest pose",
                                      [&]() { p_.onlylatest = !p_.onlylatest; });
   // Toggle between types of keyframes
-  pangolin::RegisterKeyPressCallback('k', [&]() {
+  registerPangolinCallback('k',"Toggle between Frustum or Triad keyframes",  [&]() {
     if (p_.kftype == KeyframeDrawType::kFrustum) {
       p_.kftype = KeyframeDrawType::kTriad;
     } else if (p_.kftype == KeyframeDrawType::kTriad) {
       p_.kftype = KeyframeDrawType::kFrustum;
     }
   });
-  pangolin::RegisterKeyPressCallback('q', [&]() {
+  registerPangolinCallback('q', "Quit", [&]() {
     pangolin::QuitAll();
     pangolin::DestroyWindow(_window_name);
     forced_quit_ = true;
   });
 
   bool show_manual = true;
-  pangolin::RegisterKeyPressCallback('m',
-                                     [&]() { show_manual = !show_manual; });
-
+  registerPangolinCallback('m', "Show trajectory and landmarks",[&]() { show_manual = !show_manual; });
+  registerPangolinCallback('h', "Show help message", [&]() { p_.showhelp = !p_.showhelp; });
+  registerPangolinCallback('r', "Show range measurements", [&]() { p_.showranges = !p_.showranges; });
+  registerPangolinCallback('f', "Reset view", [&]() {s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, pangolin::AxisZ));});
   // Manage the size of the points.
   glPointSize(3.5);  // Default is 1.
   // Useful identity.
@@ -112,7 +114,9 @@ void Visualizer::RenderWorld() {
       DrawLandmarks(landmarks_, p_.landmark_color);
     }
 
-    DrawRanges(ranges_, p_.range_color);
+    if (p_.showranges){
+      DrawRanges(ranges_, p_.range_color);
+    }
 
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
@@ -135,6 +139,8 @@ void Visualizer::RenderWorld() {
       glLineWidth(7.5);
       pangolin::glDrawAxis(I_4x4, 0.11);
     }
+
+    DrawHelp();
 
     glLineWidth(1.0);
 
@@ -293,6 +299,43 @@ void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
   cv::flip(left_short.clone(), imgL_, 0);
   cv::flip(right_short.clone(), imgR_, 0);
   vizmtx_.unlock();
+}
+
+void Visualizer::DrawHelp() const {
+  // Print all keybinds with descriptions onto the pangolin canvas
+  glColor3f(0, 0, 0);
+  glLineWidth(1.0);
+
+  // Built off of Tonio's code in SESyncVisualizer.cpp
+  GLboolean gl_blend_enabled;
+  glGetBooleanv(GL_BLEND, &gl_blend_enabled);
+
+  // Ensure that blending is enabled for rendering text.
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  if (p_.showhelp){
+    auto height = 10.0f;
+    for (auto & keybind : keybinds_) {
+        pangolin::GlFont::I().Text(std::string{keybind.first + std::string(": ") + keybind.second}).DrawWindow(10, height);
+        height += 20;
+    }
+  } else {
+    pangolin::GlFont::I()
+        .Text(std::string{"Press 'h' to show help message"}).DrawWindow(10, 10);
+  }
+  // Restore previous value.
+  if (!gl_blend_enabled) glDisable(GL_BLEND);
+
+  glLineWidth(1.0);
+}
+
+void Visualizer::registerPangolinCallback(char key, std::string description,
+                                          std::function<void(void)> callback) {
+  if (keybinds_.find(key) != keybinds_.end()) {
+    std::cout << "Keybind for " << key << " already exists. Overwriting." << std::endl;
+  }
+  keybinds_[key] = std::move(description);
+  pangolin::RegisterKeyPressCallback(key, std::move(callback));
 }
 
 }  // namespace mrg

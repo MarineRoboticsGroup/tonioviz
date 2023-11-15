@@ -79,7 +79,10 @@ struct VisualizerParams {
   KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
   LandmarkDrawType landtype = LandmarkDrawType::kPoint;  ///< Landmark type.
   RangeDrawType rangetype = RangeDrawType::kCircle;      ///< Range type.
+
   bool onlylatest = false;     ///< Draw only the most recent keyframe.
+  bool showranges = true;
+  bool showhelp = true;        ///< Display the keybinds on screen
   double frustum_scale = 0.1;  ///< Size of frustum [m].
 
   Color landmark_color{1.0, 0, 0};
@@ -271,9 +274,9 @@ class Visualizer {
 
   inline void DrawRanges() const { DrawRanges(ranges_); }
 
-  inline void DrawRanges(std::vector<Range> ranges, Color color = std::make_tuple(0, 1, 0)) const {
-    for (const Range c : ranges) {
-      DrawRange(c, color);
+  inline void DrawRanges(const std::vector<Range>& ranges, Color color = std::make_tuple(0, 1, 0)) const {
+    for (const Range range : ranges) {
+        DrawRange(range, color);
     }
   }
 
@@ -294,7 +297,14 @@ class Visualizer {
     }
   }
 
+  void registerPangolinCallback(char key, std::string description, std::function<void(void)> callback);
+
+  void DrawHelp() const;
+
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
+
+  std::map<char, std::string> keybinds_;
+
   const std::string _window_name =
       "mrg official viewer";  // name of the visualizer window
   bool forced_quit_ = false;
