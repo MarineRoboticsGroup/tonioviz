@@ -80,13 +80,19 @@ struct VisualizerParams {
   LandmarkDrawType landtype = LandmarkDrawType::kPoint;  ///< Landmark type.
   RangeDrawType rangetype = RangeDrawType::kCircle;      ///< Range type.
 
-  bool onlylatest = false;     ///< Draw only the most recent keyframe.
-  bool showranges = true;
-  bool showhelp = true;        ///< Display the keybinds on screen
   double frustum_scale = 0.1;  ///< Size of frustum [m].
 
   Color landmark_color{1.0, 0, 0};
   Color range_color{0, 1.0, 0};
+};
+
+struct VisualizerState {
+  bool show_traj = true;
+  bool show_landmark = true;
+  bool show_help = false;
+  bool show_ranges = true;
+  bool show_only_latest = false;
+  bool show_z0 = true;
 };
 
 /**
@@ -121,7 +127,7 @@ class Visualizer {
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
   inline void AddVizPose(const VizPose& vpose) {
-    pose_vectors_[0].push_back(vpose);
+    AddVizPose(vpose, 0);
   }
 
   /**
@@ -132,6 +138,7 @@ class Visualizer {
     while (pose_vectors_.size() <= traj_ind) {
       pose_vectors_.emplace_back(std::vector<VizPose>());
     }
+    num_poses++;
     pose_vectors_[traj_ind].push_back(vpose);
   }
 
@@ -299,6 +306,7 @@ class Visualizer {
 
   void registerPangolinCallback(char key, std::string description, std::function<void(void)> callback);
 
+  VisualizerState vis_state;
   Eigen::Vector4d getXYRange() const;
 
   void DrawHelp() const;
@@ -316,6 +324,8 @@ class Visualizer {
       pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
   std::vector<VizLandmark> landmarks_;
   std::vector<Range> ranges_;
+
+  int num_poses{0};
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.
