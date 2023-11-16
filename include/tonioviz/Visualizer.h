@@ -120,7 +120,12 @@ class Visualizer {
    */
   void RenderWorld();
 
-  inline void AddRangeMeasurement(const Range c) { ranges_.push_back(c); }
+  inline void AddRangeMeasurement(const Range c) {
+    vizmtx_.lock();
+    ranges_.push_back(c);
+    vizmtx_.unlock();
+  }
+
 
   /**
    * @brief Add a visualization pose element. For multiple trajectories.
@@ -196,15 +201,17 @@ class Visualizer {
    * @brief Clears all the stored information.
    */
   inline void Clear() {
-
+    vizmtx_.lock();
     for (auto & pose_vector : pose_vectors_) {
       pose_vector.clear();
     }
     pose_vectors_.clear();
+    num_poses = 0;
     landmarks_.clear();
     ranges_.clear();
     xy_range_.setZero();
     updateXYRange();
+    vizmtx_.unlock();
   }
 
   /**

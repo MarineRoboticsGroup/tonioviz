@@ -168,10 +168,12 @@ void Visualizer::RenderWorld() {
 
 /* ************************************************************************** */
 void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind) {
+  vizmtx_.lock();
   while (static_cast<int>(pose_vectors_.size()) <= traj_ind) pose_vectors_.emplace_back();
   for (const auto& vpose : vposes) pose_vectors_[traj_ind].push_back(vpose);
   num_poses += static_cast<int>(vposes.size());
   updateXYRange();
+  vizmtx_.unlock();
 }
 
 /* ************************************************************************** */
@@ -190,8 +192,10 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
 
 /* ************************************************************************** */
 void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
+  vizmtx_.lock();
   for (const auto& vl : landmarks) landmarks_.push_back(vl);
   updateXYRange();
+  vizmtx_.unlock();
 }
 
 /* ************************************************************************** */
