@@ -33,6 +33,12 @@ typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 /// 3D Position of landmark
 typedef Eigen::Vector3d VizLandmark;
 
+struct Color {
+  double r;
+  double g;
+  double b;
+};
+
 /**
  * @brief Type of visualization modes available.
  */
@@ -77,8 +83,20 @@ struct VisualizerParams {
   KeyframeDrawType kftype = KeyframeDrawType::kFrustum;  ///< Keyframe type.
   LandmarkDrawType landtype = LandmarkDrawType::kPoint;  ///< Landmark type.
   RangeDrawType rangetype = RangeDrawType::kCircle;      ///< Range type.
-  bool onlylatest = false;     ///< Draw only the most recent keyframe.
+
   double frustum_scale = 0.1;  ///< Size of frustum [m].
+
+  Color landmark_color{1.0, 0, 0};
+  Color range_color{0, 1.0, 0};
+};
+
+struct VisualizerState {
+  bool show_traj = true;
+  bool show_landmark = true;
+  bool show_help = false;
+  bool show_ranges = true;
+  bool show_only_latest = false;
+  bool show_z0 = true;
 };
 
 /**
@@ -106,35 +124,19 @@ class Visualizer {
    */
   void RenderWorld();
 
-  inline void AddRangeMeasurement(const Range c) { ranges_.push_back(c); }
-
-  /**
-   * @brief Add a visualization pose element.
-   * @param[in] vpose   Visualization tuple with pose, axes length, and width.
-   */
-  inline void AddVizPose(const VizPose& vpose) {
-    pose_vectors_[0].push_back(vpose);
+  inline void AddRangeMeasurement(const Range c) {
+    vizmtx_.lock();
+    ranges_.push_back(c);
+    vizmtx_.unlock();
   }
 
   /**
    * @brief Add a visualization pose element. For multiple trajectories.
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
    */
-  inline void AddVizPose(const VizPose& vpose, uint traj_ind) {
-    while (pose_vectors_.size() <= traj_ind) {
-      pose_vectors_.emplace_back(std::vector<VizPose>());
-    }
-    pose_vectors_[traj_ind].push_back(vpose);
+  inline void AddVizPose(const VizPose& vpose, int traj_ind = 0) {
+    AddVizPoses({vpose}, traj_ind);
   }
-
-  /**
-   * @brief Add a visualization pose element; overload with individual elements.
-   * @param[in] pose     3D pose of triad to visualize.
-   * @param[in] length   Length of the pose axes.
-   * @param[in] width    Width of the pose axes..
-   */
-  void AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                  const double width);
 
   /**
    * @brief Add a visualization pose element; overload with individual elements.
@@ -144,29 +146,14 @@ class Visualizer {
    * @param[in] width    Width of the pose axes..
    */
   void AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                  const double width, int traj_ind);
-
-  /**
-   * @brief Same as above, but for multiple poses at a time..
-   * @param[in] vposes   Vector of visualization poses.
-   */
-  void AddVizPoses(const std::vector<VizPose>& vposes);
+                  const double width, int traj_ind = 0);
 
   /**
    * @brief Same as above, but for multiple poses at a time. For multiple
    * trajectories.
    * @param[in] vposes   Vector of visualization poses.
    */
-  void AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind);
-
-  /**
-   * @brief Same as above, but for multiple poses at the same time..
-   * @param[in] poses    Vector of 3D poses to visualize.
-   * @param[in] length   Length of the pose axes.
-   * @param[in] width    Width of the pose axes.
-   */
-  void AddVizPoses(const Trajectory3& poses, const double length,
-                   const double width);
+  void AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind = 0);
 
   /**
    * @brief Same as above, but for multiple poses at the same time. For multiple
@@ -176,16 +163,14 @@ class Visualizer {
    * @param[in] width    Width of the pose axes.
    */
   void AddVizPoses(const Trajectory3& poses, const double length,
-                   const double width, int traj_ind);
+                   const double width, int traj_ind = 0);
 
   /**
    * @brief Adds a landmark to be visualized
    *
    * @param vl landmark
    */
-  inline void AddVizLandmark(const VizLandmark& vl) {
-    landmarks_.push_back(vl);
-  }
+  inline void AddVizLandmark(const VizLandmark& vl) { AddVizLandmarks({vl}); }
 
   /**
    * @brief Adds multiple landmarks to be visualized
@@ -214,12 +199,20 @@ class Visualizer {
   inline VisualizerParams Params() const { return p_; }
 
   /**
-   * @brief Clears all the stored visualized poses.
+   * @brief Clears all the stored information.
    */
   inline void Clear() {
-    for (uint i = 0; i < pose_vectors_.size(); i++) {
-      pose_vectors_[i].clear();
+    vizmtx_.lock();
+    for (auto& pose_vector : pose_vectors_) {
+      pose_vector.clear();
     }
+    pose_vectors_.clear();
+    num_poses = 0;
+    landmarks_.clear();
+    ranges_.clear();
+    xy_range_.setZero();
+    updateXYRange();
+    vizmtx_.unlock();
   }
 
   /**
@@ -241,9 +234,11 @@ class Visualizer {
    */
   void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
-  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks) const {
+  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks,
+                            Color color = Color{1, 0, 0}) const {
     // Draw all landmarks
-    glColor3f(1.0f, 0.0, 0.0);
+    glColor3f(color.r, color.g, color.b);
+    glLineWidth(2.0);
     double rad = 0.25;
     if (p_.landtype == LandmarkDrawType::kCross) {
       for (const VizLandmark& vl : landmarks) {
@@ -265,18 +260,18 @@ class Visualizer {
 
   inline void DrawRanges() const { DrawRanges(ranges_); }
 
-  inline void DrawRanges(std::vector<Range> circles) const {
-    for (const Range c : circles) {
-      DrawRange(c);
+  inline void DrawRanges(const std::vector<Range>& ranges,
+                         Color color = Color{0, 1, 0}) const {
+    for (const Range range : ranges) {
+      DrawRange(range, color);
     }
   }
 
-  inline void DrawRange(Range c) const {
+  inline void DrawRange(Range c, Color color) const {
+    glColor3f(color.r, color.g, color.b);
     if (p_.rangetype == RangeDrawType::kCircle) {
-      glColor3f(0.0f, 1.0f, 0.0f);
       pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
     } else if (p_.rangetype == RangeDrawType::kLine && c.has_p2) {
-      glColor3f(0.0f, 1.0f, 0.0f);
       Eigen::Vector2d p2_vec(c.p2.first, c.p2.second);
       Eigen::Vector2d c_vec(c.x, c.y);
       // Set the length of the line to be the range
@@ -289,7 +284,19 @@ class Visualizer {
     }
   }
 
+  void registerPangolinCallback(char key, std::string description,
+                                std::function<void(void)> callback);
+
+  VisualizerState vis_state;
+  void updateXYRange();
+
+  void DrawHelp() const;
+
   VisualizerParams p_;  ///< Internal copy of the configuration parameters.
+  Eigen::Vector4d xy_range_{0, 0, 0, 0};
+
+  std::map<char, std::string> keybinds_;
+
   const std::string _window_name =
       "mrg official viewer";  // name of the visualizer window
   bool forced_quit_ = false;
@@ -299,6 +306,8 @@ class Visualizer {
       pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
   std::vector<VizLandmark> landmarks_;
   std::vector<Range> ranges_;
+
+  int num_poses{0};
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.

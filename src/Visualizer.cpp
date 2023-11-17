@@ -8,6 +8,7 @@
 #include "tonioviz/Visualizer.h"
 
 #include <Eigen/StdVector>
+#include <utility>
 
 namespace mrg {
 
@@ -21,9 +22,6 @@ Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
   // for more details: https://github.com/stevenlovegrove/Pangolin/issues/590.
   p_.imgwidth = p_.imgwidth / 4 * 4;
   p_.imgheight = p_.imgheight / 4 * 4;
-
-  // Initialize pose vector with empty vector of poses.
-  pose_vectors_.emplace_back(std::vector<VizPose>());
 }
 
 /* *************************************************************************  */
@@ -54,31 +52,40 @@ void Visualizer::RenderWorld() {
   pangolin::View& right_cam =
       pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.5, 0.95);
 
-  // Real-time toggles using key presses.
-  bool show_z0 = true;
   // Toggle between drawing the origin.
-  pangolin::RegisterKeyPressCallback('z', [&]() { show_z0 = !show_z0; });
+  registerPangolinCallback('z', "Draw the origin and ground plane", [&]() { vis_state.show_z0 = !vis_state.show_z0; });
   // Toggle between drawing only the latest keyframe or full pose history.
-  pangolin::RegisterKeyPressCallback('l',
-                                     [&]() { p_.onlylatest = !p_.onlylatest; });
+  registerPangolinCallback('l', "Show only the latest pose",
+                                     [&]() { vis_state.show_only_latest = !vis_state.show_only_latest; });
   // Toggle between types of keyframes
-  pangolin::RegisterKeyPressCallback('k', [&]() {
+  registerPangolinCallback('k',"Toggle between Frustum or Triad keyframes",  [&]() {
     if (p_.kftype == KeyframeDrawType::kFrustum) {
       p_.kftype = KeyframeDrawType::kTriad;
     } else if (p_.kftype == KeyframeDrawType::kTriad) {
       p_.kftype = KeyframeDrawType::kFrustum;
     }
   });
-  pangolin::RegisterKeyPressCallback('q', [&]() {
+  registerPangolinCallback('q', "Quit", [&]() {
     pangolin::QuitAll();
     pangolin::DestroyWindow(_window_name);
     forced_quit_ = true;
   });
 
-  bool show_manual = true;
-  pangolin::RegisterKeyPressCallback('m',
-                                     [&]() { show_manual = !show_manual; });
+  registerPangolinCallback('t', "Show trajectory",[&]() { vis_state.show_traj = !vis_state.show_traj; });
+  registerPangolinCallback('m', "Show landmarks", [&]() { vis_state.show_landmark = !vis_state.show_landmark; });
+  registerPangolinCallback('h', "Show help message", [&]() { vis_state.show_help = !vis_state.show_help; });
+  registerPangolinCallback('r', "Show range measurements", [&]() {vis_state.show_ranges = !vis_state.show_ranges; });
+  registerPangolinCallback('f', "Set view to fit all objects", [&]() {
+    Eigen::Map<Eigen::Matrix2d> xy_points(xy_range_.data(), 2, 2);
+    auto view_center = xy_points.rowwise().mean(); // 2x1 center of camera view
+    auto view_range = (xy_points.rowwise().maxCoeff() - xy_points.rowwise().minCoeff()); // 2x1 range of camera view
+    auto z_w = view_range(1) * p_.f / p_.w; // Since we are using X-up, we need to use the width to capture all of y
+    auto z_h  = view_range(0) * p_.f / p_.h; // X-up, need height to capture all of x
 
+    auto z = std::max(z_w, z_h) * 1.1; // Add a buffer around the bounding rectangle
+
+    s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(view_center(0),  view_center(1), z, view_center(0), view_center(1), 0.0, pangolin::AxisX));
+  });
   // Manage the size of the points.
   glPointSize(3.5);  // Default is 1.
   // Useful identity.
@@ -105,20 +112,31 @@ void Visualizer::RenderWorld() {
     // Default line width.
     glLineWidth(1.0);
 
-    if (show_manual) {
+    if (vis_state.show_traj) {
       for (uint i = 0; i < pose_vectors_.size(); i++) {
         DrawTrajectory(pose_vectors_[i]);
       }
-      DrawLandmarks(landmarks_);
+    }
+    if (vis_state.show_landmark) {
+      DrawLandmarks(landmarks_, p_.landmark_color);
     }
 
-    DrawRanges();
+    if (vis_state.show_ranges){
+      DrawRanges(ranges_, p_.range_color);
+    }
 
     s_cam.Apply();
     glColor3f(1.0, 1.0, 1.0);
-    if (show_z0) pangolin::glDraw_z0(1.0, 2);
-    glLineWidth(7.5);
-    if (show_z0) pangolin::glDrawAxis(I_4x4, 0.11);
+    if (vis_state.show_z0) {
+      auto furthest_element = xy_range_.rowwise().norm().maxCoeff();
+      pangolin::glDraw_z0(1.0, std::ceil(furthest_element));
+
+      glLineWidth(7.5);
+      pangolin::glDrawAxis(I_4x4, 0.11);
+    }
+
+    DrawHelp();
+
     glLineWidth(1.0);
 
     // ----------------
@@ -149,33 +167,19 @@ void Visualizer::RenderWorld() {
 }
 
 /* ************************************************************************** */
-void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes) {
-  for (const auto& vpose : vposes) pose_vectors_[0].push_back(vpose);
-}
-
-/* ************************************************************************** */
 void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind) {
+  vizmtx_.lock();
+  while (static_cast<int>(pose_vectors_.size()) <= traj_ind) pose_vectors_.emplace_back();
   for (const auto& vpose : vposes) pose_vectors_[traj_ind].push_back(vpose);
-}
-
-/* ************************************************************************** */
-void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
-                            const double width) {
-  AddVizPose(std::make_tuple(pose, length, width));
+  num_poses += static_cast<int>(vposes.size());
+  updateXYRange();
+  vizmtx_.unlock();
 }
 
 /* ************************************************************************** */
 void Visualizer::AddVizPose(const Eigen::Matrix4d& pose, const double length,
                             const double width, int traj_ind) {
   AddVizPose(std::make_tuple(pose, length, width), traj_ind);
-}
-
-/* ************************************************************************** */
-void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
-                             const double width) {
-  for (const Eigen::Matrix4d& pose : poses) {
-    AddVizPose(std::make_tuple(pose, length, width));
-  }
 }
 
 /* ************************************************************************** */
@@ -188,7 +192,10 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
 
 /* ************************************************************************** */
 void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
+  vizmtx_.lock();
   for (const auto& vl : landmarks) landmarks_.push_back(vl);
+  updateXYRange();
+  vizmtx_.unlock();
 }
 
 /* ************************************************************************** */
@@ -218,7 +225,7 @@ void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   // Draw all keyframes and get all positions.
   glColor3f(0.0, 0.0, 0.4);
   for (const VizPose& vp : trajectory) {
-    if (!p_.onlylatest) {
+    if (!vis_state.show_only_latest || vp == trajectory.back()) {
       glLineWidth(std::get<2>(vp));
       if (p_.kftype == KeyframeDrawType::kFrustum) {
         Eigen::Matrix4d Twf = std::get<0>(vp) * T_frustum_;
@@ -229,20 +236,7 @@ void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
       }
       glLineWidth(1.0);
     }
-    positions.push_back(std::get<0>(vp).block<3, 1>(0, 3));
-  }
-
-  // Draw only the most recent keyframe.
-  if (p_.onlylatest && trajectory.size()) {
-    VizPose latest = trajectory.back();
-    glLineWidth(std::get<2>(latest));
-    if (p_.kftype == KeyframeDrawType::kFrustum) {
-      Eigen::Matrix4d Twf = std::get<0>(latest) * T_frustum_;
-      pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, Twf,
-                              p_.frustum_scale);
-    } else if (p_.kftype == KeyframeDrawType::kTriad) {
-      pangolin::glDrawAxis(std::get<0>(latest), std::get<1>(latest));
-    }
+    positions.emplace_back(std::get<0>(vp).block<3, 1>(0, 3));
   }
 
   // Draw a line connecting all poses.
@@ -276,6 +270,71 @@ void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
   cv::flip(left_short.clone(), imgL_, 0);
   cv::flip(right_short.clone(), imgR_, 0);
   vizmtx_.unlock();
+}
+
+void Visualizer::DrawHelp() const {
+  // Print all keybinds with descriptions onto the pangolin canvas
+  glColor3f(0, 0, 0);
+  glLineWidth(1.0);
+
+  // Built off of Tonio's code in SESyncVisualizer.cpp
+  GLboolean gl_blend_enabled;
+  glGetBooleanv(GL_BLEND, &gl_blend_enabled);
+
+  // Ensure that blending is enabled for rendering text.
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  if (vis_state.show_help){
+    auto height = 10.0f;
+    for (auto & keybind : keybinds_) {
+        pangolin::GlFont::I().Text(std::string{keybind.first + std::string(": ") + keybind.second}).DrawWindow(10, height);
+        height += 20;
+    }
+  } else {
+    pangolin::GlFont::I()
+        .Text(std::string{"Press 'h' to show help message"}).DrawWindow(10, 10);
+  }
+  // Restore previous value.
+  if (!gl_blend_enabled) glDisable(GL_BLEND);
+
+  glLineWidth(1.0);
+}
+
+void Visualizer::registerPangolinCallback(char key, std::string description,
+                                          std::function<void(void)> callback) {
+  if (keybinds_.find(key) != keybinds_.end()) {
+    std::cout << "Keybind for " << key << " already exists. Overwriting." << std::endl;
+  }
+  keybinds_[key] = std::move(description);
+  pangolin::RegisterKeyPressCallback(key, std::move(callback));
+}
+
+/**
+ * @brief Get the bounding rectangle of poses and landmarks in the xy plane
+ * @return x_min, y_min, x_max, y_max
+ */
+void Visualizer::updateXYRange() {
+  auto num_points = landmarks_.size() + num_poses;
+  if (num_points == 0) {
+    return;
+  }
+
+  Eigen::MatrixXd points(num_points, 2);
+
+  auto row_idx{0};
+  for (auto& landmark : landmarks_){
+    points.row(row_idx) << landmark.block(0, 0, 2, 1).transpose();
+    row_idx++;
+  }
+  for (auto& pose_vec: pose_vectors_) {
+    for (auto& pose : pose_vec) {
+      points.row(row_idx) << std::get<0>(pose).block(0, 3, 2, 1).transpose();
+      row_idx++;
+    }
+  }
+
+  xy_range_.block(0, 0, 2, 1) = points.colwise().minCoeff().transpose();
+  xy_range_.block(2, 0, 2, 1) = points.colwise().maxCoeff().transpose();
 }
 
 }  // namespace mrg
