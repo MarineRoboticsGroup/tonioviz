@@ -33,7 +33,11 @@ typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 /// 3D Position of landmark
 typedef Eigen::Vector3d VizLandmark;
 
-typedef std::tuple<float, float, float> Color;
+struct Color {
+  double r;
+  double g;
+  double b;
+};
 
 /**
  * @brief Type of visualization modes available.
@@ -126,7 +130,6 @@ class Visualizer {
     vizmtx_.unlock();
   }
 
-
   /**
    * @brief Add a visualization pose element. For multiple trajectories.
    * @param[in] vpose   Visualization tuple with pose, axes length, and width.
@@ -167,9 +170,7 @@ class Visualizer {
    *
    * @param vl landmark
    */
-  inline void AddVizLandmark(const VizLandmark& vl) {
-    AddVizLandmarks({vl});
-  }
+  inline void AddVizLandmark(const VizLandmark& vl) { AddVizLandmarks({vl}); }
 
   /**
    * @brief Adds multiple landmarks to be visualized
@@ -202,7 +203,7 @@ class Visualizer {
    */
   inline void Clear() {
     vizmtx_.lock();
-    for (auto & pose_vector : pose_vectors_) {
+    for (auto& pose_vector : pose_vectors_) {
       pose_vector.clear();
     }
     pose_vectors_.clear();
@@ -233,9 +234,10 @@ class Visualizer {
    */
   void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
-  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks, Color color=std::make_tuple(1.0, 0, 0)) const {
+  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks,
+                            Color color = Color{1, 0, 0}) const {
     // Draw all landmarks
-    glColor3f(std::get<0>(color), std::get<1>(color), std::get<2>(color));
+    glColor3f(color.r, color.g, color.b);
     glLineWidth(2.0);
     double rad = 0.25;
     if (p_.landtype == LandmarkDrawType::kCross) {
@@ -258,14 +260,15 @@ class Visualizer {
 
   inline void DrawRanges() const { DrawRanges(ranges_); }
 
-  inline void DrawRanges(const std::vector<Range>& ranges, Color color = std::make_tuple(0, 1, 0)) const {
+  inline void DrawRanges(const std::vector<Range>& ranges,
+                         Color color = Color{0, 1, 0}) const {
     for (const Range range : ranges) {
-        DrawRange(range, color);
+      DrawRange(range, color);
     }
   }
 
   inline void DrawRange(Range c, Color color) const {
-    glColor3f(std::get<0>(color), std::get<1>(color), std::get<2>(color));
+    glColor3f(color.r, color.g, color.b);
     if (p_.rangetype == RangeDrawType::kCircle) {
       pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
     } else if (p_.rangetype == RangeDrawType::kLine && c.has_p2) {
@@ -281,7 +284,8 @@ class Visualizer {
     }
   }
 
-  void registerPangolinCallback(char key, std::string description, std::function<void(void)> callback);
+  void registerPangolinCallback(char key, std::string description,
+                                std::function<void(void)> callback);
 
   VisualizerState vis_state;
   void updateXYRange();
