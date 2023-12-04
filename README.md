@@ -3,7 +3,7 @@
 ## Prerequisites
 
 For the moment, make sure you install:
-- [Pangolin](https://github.com/stevenlovegrove/Pangolin)
+- [Pangolin v0.6](https://github.com/stevenlovegrove/Pangolin/releases/tag/v0.6)
 - [GTSAM](https://github.com/borglab/gtsam)
 
 and let me know if it breaks...
