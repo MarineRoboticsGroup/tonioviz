@@ -118,7 +118,7 @@ void Visualizer::RenderWorld() {
       }
     }
     if (vis_state.show_landmark) {
-      DrawLandmarks(landmarks_, p_.landmark_color);
+      DrawLandmarks(landmarks_);
     }
 
     if (vis_state.show_ranges){
@@ -193,7 +193,9 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
 /* ************************************************************************** */
 void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
   vizmtx_.lock();
-  for (const auto& vl : landmarks) landmarks_.push_back(vl);
+  for (const auto& vl : landmarks) {
+    landmarks_.push_back(ColorLandmark{vl, p_.landmark_color});
+  }
   updateXYRange();
   vizmtx_.unlock();
 }
@@ -323,7 +325,7 @@ void Visualizer::updateXYRange() {
 
   auto row_idx{0};
   for (auto& landmark : landmarks_){
-    points.row(row_idx) << landmark.block(0, 0, 2, 1).transpose();
+    points.row(row_idx) << landmark.lmPos.block(0, 0, 2, 1).transpose();
     row_idx++;
   }
   for (auto& pose_vec: pose_vectors_) {

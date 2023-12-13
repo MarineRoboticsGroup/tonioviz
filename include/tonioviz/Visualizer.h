@@ -30,14 +30,20 @@ typedef std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>>
 /// 3D Pose with axes length (1st double) and line width (2nd double) for viz.
 typedef std::tuple<Eigen::Matrix4d, double, double> VizPose;
 
-/// 3D Position of landmark
-typedef Eigen::Vector3d VizLandmark;
 
-struct Color {
+typedef struct Color {
   double r;
   double g;
   double b;
-};
+} Color;
+
+/// 3D Position of landmark
+typedef struct ColorLandmark {
+  Eigen::Vector3d lmPos;
+  Color color; 
+} ColorLandmark;
+
+typedef Eigen::Vector3d VizLandmark; 
 
 /**
  * @brief Type of visualization modes available.
@@ -75,8 +81,8 @@ struct VisualizerParams {
   float h = 800.0f;   ///< Heigh of the screen [px].
   float f = 300.0f;   ///< Focal distance of the visualization camera [px].
 
-  int imgwidth = 672;   ///< Width of the image to view [px].
-  int imgheight = 376;  ///< Height of the image to view [px].
+  int imgwidth = 640;   ///< Width of the image to view [px].
+  int imgheight = 480;  ///< Height of the image to view [px].
 
   VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
 
@@ -234,7 +240,7 @@ class Visualizer {
    */
   void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
 
-  inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks,
+  void DrawLandmarks(const std::vector<VizLandmark>& landmarks,
                             Color color = Color{1, 0, 0}) const {
     // Draw all landmarks
     glColor3f(color.r, color.g, color.b);
@@ -247,6 +253,31 @@ class Visualizer {
     } else if (p_.landtype == LandmarkDrawType::kPoint) {
       glPointSize(2.0);
       pangolin::glDrawPoints(landmarks);
+    } else {
+      std::cerr << "Attempted landmark visualization is not supported"
+                << std::endl;
+      assert(false);
+    }
+
+    glLineWidth(1.0);
+  }
+
+  void DrawLandmarks(const std::vector<ColorLandmark>& landmarks) const {
+    // Draw all landmarks
+    glLineWidth(2.0);
+    double rad = 0.25;
+    if (p_.landtype == LandmarkDrawType::kCross) {
+      for (const ColorLandmark& vl : landmarks) {
+        glColor3f(vl.color.r, vl.color.g, vl.color.b);
+        pangolin::glDrawCross(vl.lmPos, rad);
+      }
+    } else if (p_.landtype == LandmarkDrawType::kPoint) {
+      glPointSize(2.0);
+      for (const ColorLandmark& vl : landmarks) {
+        glColor3f(vl.color.r, vl.color.g, vl.color.b);
+        std::vector<VizLandmark> pos = {vl.lmPos}; // can't draw a single point with Pangolin? 
+        pangolin::glDrawPoints(pos);
+      }
     } else {
       std::cerr << "Attempted landmark visualization is not supported"
                 << std::endl;
@@ -304,7 +335,7 @@ class Visualizer {
   // Manually-modifiable variables.
   std::vector<std::vector<VizPose>>
       pose_vectors_;  ///< 2D vector of poses to represent multiple trajectories
-  std::vector<VizLandmark> landmarks_;
+  std::vector<ColorLandmark> landmarks_;
   std::vector<Range> ranges_;
 
   int num_poses{0};
