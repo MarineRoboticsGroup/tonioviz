@@ -186,6 +186,20 @@ class Visualizer {
   void AddVizLandmarks(const std::vector<VizLandmark>& landmarks);
 
   /**
+   * @brief Adds a landmark to be visualized with a given color
+   *
+   * @param vl landmark
+   */
+  inline void AddVizLandmark(const ColorLandmark& vl) { AddVizLandmarks({vl}); }
+
+  /**
+   * @brief Adds multiple landmarks to be visualized
+   *
+   * @param landmarks vector of landmarks to visualize
+   */
+  void AddVizLandmarks(const std::vector<ColorLandmark>& landmarks);
+
+  /**
    * @brief Add a single image to visualize on top of the estimates.
    * @param[in] img  OpenCV image to be visualized.
    */
@@ -272,7 +286,7 @@ class Visualizer {
         pangolin::glDrawCross(vl.lmPos, rad);
       }
     } else if (p_.landtype == LandmarkDrawType::kPoint) {
-      glPointSize(2.0);
+      glPointSize(10.0);
       for (const ColorLandmark& vl : landmarks) {
         glColor3f(vl.color.r, vl.color.g, vl.color.b);
         std::vector<VizLandmark> pos = {vl.lmPos}; // can't draw a single point with Pangolin? 

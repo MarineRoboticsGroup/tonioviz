@@ -62,6 +62,15 @@ VizLandmark GetVizLandmark(const gtsam::Point2& landmark);
 VizLandmark GetVizLandmark(const gtsam::Point3& landmark);
 
 /**
+ * @brief Convert from gtsam::Point3 and Color to ColoLandmark.
+ *
+ * @param landmark  GTSAM 3D point.
+ * @param color     Color of the landmark.
+ * @return Corresponding 3D point.
+ */
+ColorLandmark GetColorLandmark(const gtsam::Point3& landmark, const Color& color);
+
+/**
  * @brief Convert from vector of gtsam::Point2 to vector of VizLandmarks.
  *
  * @param landmarks  Vector of GTSAM 2D points.
@@ -78,6 +87,14 @@ std::vector<VizLandmark> GetVizLandmarks(
  */
 std::vector<VizLandmark> GetVizLandmarks(
     const std::vector<gtsam::Point3>& landmarks);
+
+/**
+ * @brief get a color from a class id
+ * 
+ * @param class_id the class id
+ * @return Color the color
+ */
+Color GetColorFromClassId(const int class_id);
 
 /**
  * @brief Builds vector of visualization poses to pass directly onto visualizer.

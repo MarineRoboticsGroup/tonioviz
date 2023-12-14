@@ -11,7 +11,7 @@ find_package(OpenCV 4 REQUIRED)
 
 # Modularize into separate components.
 option(BUILD_GTSAM_UTILS "Build the GTSAM utilities module." ON)
-option(BUILD_EXAMPLES "Build the examples." OFF)
+option(BUILD_EXAMPLES "Build the examples." ON)
 # Create library.
 set(TONIOVIZ_SRCS
   src/DataUtils.cpp

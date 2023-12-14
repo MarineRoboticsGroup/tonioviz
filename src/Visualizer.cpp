@@ -48,9 +48,9 @@ void Visualizer::RenderWorld() {
                               .SetHandler(new pangolin::Handler3D(s_cam));
   // Create the image viewer for either mono or stereo.
   pangolin::View& left_cam =
-      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.05, 0.5);
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.05, 0.4);
   pangolin::View& right_cam =
-      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.5, 0.95);
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.6, 0.95);
 
   // Toggle between drawing the origin.
   registerPangolinCallback('z', "Draw the origin and ground plane", [&]() { vis_state.show_z0 = !vis_state.show_z0; });
@@ -195,6 +195,16 @@ void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
   vizmtx_.lock();
   for (const auto& vl : landmarks) {
     landmarks_.push_back(ColorLandmark{vl, p_.landmark_color});
+  }
+  updateXYRange();
+  vizmtx_.unlock();
+}
+
+/* ************************************************************************** */
+void Visualizer::AddVizLandmarks(const std::vector<ColorLandmark>& landmarks) {
+  vizmtx_.lock();
+  for (const auto& vl : landmarks) {
+    landmarks_.push_back(vl);
   }
   updateXYRange();
   vizmtx_.unlock();

@@ -43,6 +43,117 @@ VizLandmark GetVizLandmark(const gtsam::Point3& landmark) {
 }
 
 /* ************************************************************************** */
+ColorLandmark GetColorLandmark(const gtsam::Point3& landmark, const Color& c) {
+  VizLandmark v_landmark = landmark.matrix();
+  ColorLandmark color_landmark{v_landmark, c };
+  return color_landmark;
+}
+
+
+/* ************************************************************************** */
+Color GetColorFromClassId(const int class_id) {
+  Color c = Color{0, 0, 0};
+  switch (class_id) {
+    case 0:
+      c.r = 1.0;
+      break;
+    case 1:
+      c.g = 1.0;
+      break;
+    case 2:
+      c.b = 1.0;
+      break;
+    case 3:
+      c.r = 1.0;
+      c.g = 1.0;
+      break;
+    case 4:
+      c.r = 1.0;
+      c.b = 1.0;
+      break;
+    case 5:
+      c.g = 1.0;
+      c.b = 1.0;
+      break;
+    case 6:
+      c.r = 1.0;
+      c.g = 1.0;
+      c.b = 1.0;
+      break;
+    case 7:
+     c.r = 0.5;
+     break;
+    case 8:
+      c.g = 0.5;
+      break;
+    case 9:
+      c.b = 0.5;
+      break;
+    case 10:
+      c.r = 0.5;
+      c.g = 0.5;
+      break;
+    case 11: 
+      c.r = 0.5;
+      c.b = 0.5;
+      break;
+    case 12:
+      c.g = 0.5;
+      c.b = 0.5;
+      break;
+    case 13:
+      c.r = 0.5;
+      c.g = 0.5;
+      c.b = 0.5;
+      break;
+    case 14:
+      c.r = 0.25;
+      break;
+    case 15:
+      c.g = 0.25;
+      break;
+    case 16:
+      c.b = 0.25;
+      break;
+    case 17:
+      c.r = 0.25;
+      c.g = 0.25;
+      break;
+    case 18:
+      c.r = 0.25;
+      c.b = 0.25;
+      break;
+    case 19:
+      c.g = 0.25;
+      c.b = 0.25;
+      break;
+    case 20:
+      c.r = 0.25;
+      c.g = 0.25;
+      c.b = 0.25;
+      break;
+    case 21:
+      c.r = 0.75;
+      break;
+    case 22:
+      c.g = 0.75;
+      break;
+    case 23:
+      c.b = 0.75;
+      break;
+    case 24:
+      c.r = 0.75;
+      c.g = 0.75;
+      break;
+    case 25:
+      c.r = 0.75;
+      c.b = 0.75;
+      break;
+  }
+  return c;
+}
+
+/* ************************************************************************** */
 std::vector<VizLandmark> GetVizLandmarks(
     const std::vector<gtsam::Point2>& landmarks) {
   std::vector<VizLandmark> v_landmarks;
