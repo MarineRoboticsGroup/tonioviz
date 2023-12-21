@@ -7,6 +7,8 @@
 
 #include "tonioviz/Visualizer.h"
 
+#include <pangolin/display/default_font.h>
+
 #include <Eigen/StdVector>
 #include <utility>
 
@@ -53,38 +55,57 @@ void Visualizer::RenderWorld() {
       pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.5, 0.95);
 
   // Toggle between drawing the origin.
-  registerPangolinCallback('z', "Draw the origin and ground plane", [&]() { vis_state.show_z0 = !vis_state.show_z0; });
+  registerPangolinCallback('z', "Draw the origin and ground plane",
+                           [&]() { vis_state.show_z0 = !vis_state.show_z0; });
   // Toggle between drawing only the latest keyframe or full pose history.
-  registerPangolinCallback('l', "Show only the latest pose",
-                                     [&]() { vis_state.show_only_latest = !vis_state.show_only_latest; });
-  // Toggle between types of keyframes
-  registerPangolinCallback('k',"Toggle between Frustum or Triad keyframes",  [&]() {
-    if (p_.kftype == KeyframeDrawType::kFrustum) {
-      p_.kftype = KeyframeDrawType::kTriad;
-    } else if (p_.kftype == KeyframeDrawType::kTriad) {
-      p_.kftype = KeyframeDrawType::kFrustum;
-    }
+  registerPangolinCallback('l', "Show only the latest pose", [&]() {
+    vis_state.show_only_latest = !vis_state.show_only_latest;
   });
+  // Toggle between types of keyframes
+  registerPangolinCallback('k', "Toggle between Frustum or Triad keyframes",
+                           [&]() {
+                             if (p_.kftype == KeyframeDrawType::kFrustum) {
+                               p_.kftype = KeyframeDrawType::kTriad;
+                             } else if (p_.kftype == KeyframeDrawType::kTriad) {
+                               p_.kftype = KeyframeDrawType::kFrustum;
+                             }
+                           });
   registerPangolinCallback('q', "Quit", [&]() {
     pangolin::QuitAll();
     pangolin::DestroyWindow(_window_name);
     forced_quit_ = true;
   });
 
-  registerPangolinCallback('t', "Show trajectory",[&]() { vis_state.show_traj = !vis_state.show_traj; });
-  registerPangolinCallback('m', "Show landmarks", [&]() { vis_state.show_landmark = !vis_state.show_landmark; });
-  registerPangolinCallback('h', "Show help message", [&]() { vis_state.show_help = !vis_state.show_help; });
-  registerPangolinCallback('r', "Show range measurements", [&]() {vis_state.show_ranges = !vis_state.show_ranges; });
+  registerPangolinCallback('t', "Show trajectory", [&]() {
+    vis_state.show_traj = !vis_state.show_traj;
+  });
+  registerPangolinCallback('m', "Show landmarks", [&]() {
+    vis_state.show_landmark = !vis_state.show_landmark;
+  });
+  registerPangolinCallback('h', "Show help message", [&]() {
+    vis_state.show_help = !vis_state.show_help;
+  });
+  registerPangolinCallback('r', "Show range measurements", [&]() {
+    vis_state.show_ranges = !vis_state.show_ranges;
+  });
   registerPangolinCallback('f', "Set view to fit all objects", [&]() {
     Eigen::Map<Eigen::Matrix2d> xy_points(xy_range_.data(), 2, 2);
-    auto view_center = xy_points.rowwise().mean(); // 2x1 center of camera view
-    auto view_range = (xy_points.rowwise().maxCoeff() - xy_points.rowwise().minCoeff()); // 2x1 range of camera view
-    auto z_w = view_range(1) * p_.f / p_.w; // Since we are using X-up, we need to use the width to capture all of y
-    auto z_h  = view_range(0) * p_.f / p_.h; // X-up, need height to capture all of x
+    auto view_center = xy_points.rowwise().mean();  // 2x1 center of camera view
+    auto view_range =
+        (xy_points.rowwise().maxCoeff() -
+         xy_points.rowwise().minCoeff());  // 2x1 range of camera view
+    auto z_w =
+        view_range(1) * p_.f / p_.w;  // Since we are using X-up, we need to use
+                                      // the width to capture all of y
+    auto z_h =
+        view_range(0) * p_.f / p_.h;  // X-up, need height to capture all of x
 
-    auto z = std::max(z_w, z_h) * 1.1; // Add a buffer around the bounding rectangle
+    auto z =
+        std::max(z_w, z_h) * 1.1;  // Add a buffer around the bounding rectangle
 
-    s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(view_center(0),  view_center(1), z, view_center(0), view_center(1), 0.0, pangolin::AxisX));
+    s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(
+        view_center(0), view_center(1), z, view_center(0), view_center(1), 0.0,
+        pangolin::AxisX));
   });
   // Manage the size of the points.
   glPointSize(3.5);  // Default is 1.
@@ -121,7 +142,7 @@ void Visualizer::RenderWorld() {
       DrawLandmarks(landmarks_, p_.landmark_color);
     }
 
-    if (vis_state.show_ranges){
+    if (vis_state.show_ranges) {
       DrawRanges(ranges_, p_.range_color);
     }
 
@@ -169,7 +190,8 @@ void Visualizer::RenderWorld() {
 /* ************************************************************************** */
 void Visualizer::AddVizPoses(const std::vector<VizPose>& vposes, int traj_ind) {
   vizmtx_.lock();
-  while (static_cast<int>(pose_vectors_.size()) <= traj_ind) pose_vectors_.emplace_back();
+  while (static_cast<int>(pose_vectors_.size()) <= traj_ind)
+    pose_vectors_.emplace_back();
   for (const auto& vpose : vposes) pose_vectors_[traj_ind].push_back(vpose);
   num_poses += static_cast<int>(vposes.size());
   updateXYRange();
@@ -284,15 +306,21 @@ void Visualizer::DrawHelp() const {
   // Ensure that blending is enabled for rendering text.
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  if (vis_state.show_help){
+  if (vis_state.show_help) {
     auto height = 10.0f;
-    for (auto & keybind : keybinds_) {
-        pangolin::GlFont::I().Text(std::string{keybind.first + std::string(": ") + keybind.second}).DrawWindow(10, height);
-        height += 20;
+    for (auto& keybind : keybinds_) {
+      pangolin::default_font()
+          .Text(std::string{keybind.first + std::string(": ") + keybind.second})
+          .DrawWindow(10, height);
+      height += 20;
     }
   } else {
-    pangolin::GlFont::I()
-        .Text(std::string{"Press 'h' to show help message"}).DrawWindow(10, 10);
+    // pangolin::GlFont::I()
+    //     .Text(std::string{"Press 'h' to show help message"})
+    //     .DrawWindow(10, 10);
+    pangolin::default_font()
+        .Text(std::string{"Press 'h' to show help message"})
+        .DrawWindow(10, 10);
   }
   // Restore previous value.
   if (!gl_blend_enabled) glDisable(GL_BLEND);
@@ -303,7 +331,8 @@ void Visualizer::DrawHelp() const {
 void Visualizer::registerPangolinCallback(char key, std::string description,
                                           std::function<void(void)> callback) {
   if (keybinds_.find(key) != keybinds_.end()) {
-    std::cout << "Keybind for " << key << " already exists. Overwriting." << std::endl;
+    std::cout << "Keybind for " << key << " already exists. Overwriting."
+              << std::endl;
   }
   keybinds_[key] = std::move(description);
   pangolin::RegisterKeyPressCallback(key, std::move(callback));
@@ -322,11 +351,11 @@ void Visualizer::updateXYRange() {
   Eigen::MatrixXd points(num_points, 2);
 
   auto row_idx{0};
-  for (auto& landmark : landmarks_){
+  for (auto& landmark : landmarks_) {
     points.row(row_idx) << landmark.block(0, 0, 2, 1).transpose();
     row_idx++;
   }
-  for (auto& pose_vec: pose_vectors_) {
+  for (auto& pose_vec : pose_vectors_) {
     for (auto& pose : pose_vec) {
       points.row(row_idx) << std::get<0>(pose).block(0, 3, 2, 1).transpose();
       row_idx++;
