@@ -119,6 +119,10 @@ void Visualizer::RenderWorld() {
                                    GL_UNSIGNED_BYTE);
 
   while (!pangolin::ShouldQuit()) {
+    if (!ready_to_render_) {
+      continue;
+    }
+    vizmtx_.lock();
     // Clear screen and activate view to render into
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -166,24 +170,20 @@ void Visualizer::RenderWorld() {
       left_cam.Activate();
       glColor3f(1.0, 1.0, 1.0);
 
-      vizmtx_.lock();
       imageTexture.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
-      vizmtx_.unlock();
       imageTexture.RenderToViewport();
 
       if (p_.mode == VisualizerMode::STEREO) {
         right_cam.Activate();
         glColor3f(1.0, 1.0, 1.0);
 
-        vizmtx_.lock();
         imageTexture.Upload(imgR_.data, GL_BGR, GL_UNSIGNED_BYTE);
-        vizmtx_.unlock();
         imageTexture.RenderToViewport();
       }
     }
-
     // Swap frames and Process Events
     pangolin::FinishFrame();
+    vizmtx_.unlock();
   }
 }
 
