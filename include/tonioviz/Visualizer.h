@@ -220,9 +220,13 @@ class Visualizer {
    */
   inline bool HasForcedQuit() { return forced_quit_; }
 
-  inline void setReadyToRender(bool ready) {
-    ready_to_render_ = ready;
-  }
+  /**
+   * @brief Set the Ready To Render flag -- this can be used to avoid rendering
+   * partially updated data in a multi-threaded environment
+   *
+   * @param ready
+   */
+  inline void setReadyToRender(bool ready) { ready_to_render_ = ready; }
 
  private:
   /**

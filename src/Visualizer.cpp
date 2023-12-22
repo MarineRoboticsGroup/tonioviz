@@ -120,8 +120,11 @@ void Visualizer::RenderWorld() {
 
   while (!pangolin::ShouldQuit()) {
     if (!ready_to_render_) {
+      // this exists for certain use cases where updating the data may take a
+      // while, but we don't want to render until the data is ready
       continue;
     }
+
     vizmtx_.lock();
     // Clear screen and activate view to render into
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
