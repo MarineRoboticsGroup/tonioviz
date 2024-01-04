@@ -43,8 +43,10 @@ int main() {
   params.mode = mrg::VisualizerMode::STEREO;
   // params.onlylatest = true;
   // params.kftype = mrg::KeyframeDrawType::kTriad;
-  params.imgwidth = 1133;
-  params.imgheight = 625;
+  params.imgwidth1 = 1133;
+  params.imgheight1 = 625;
+  params.imgwidth2 = 1133;
+  params.imgheight2 = 625;
   mrg::Visualizer viz{params};
 
   // Add an image to the visualizer.

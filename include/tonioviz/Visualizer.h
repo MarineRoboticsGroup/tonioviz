@@ -48,7 +48,7 @@ typedef Eigen::Vector3d VizLandmark;
 /**
  * @brief Type of visualization modes available.
  */
-enum class VisualizerMode { GRAPHONLY, MONO, STEREO };
+enum class VisualizerMode { GRAPHONLY, MONO, STEREO, TRIO };
 
 /**
  * @brief Type of keyframe representation for drawing.
@@ -81,8 +81,15 @@ struct VisualizerParams {
   float h = 800.0f;   ///< Heigh of the screen [px].
   float f = 300.0f;   ///< Focal distance of the visualization camera [px].
 
-  int imgwidth = 640;   ///< Width of the image to view [px].
-  int imgheight = 480;  ///< Height of the image to view [px].
+  // Note that only img1 is used for mono, only img1 and img2 for stereo
+  int imgwidth1 = 640;   ///< Width of the image to view [px].
+  int imgheight1 = 480;  ///< Height of the image to view [px].
+
+  int imgwidth2 = 466;   ///< Width of the image to view [px].
+  int imgheight2 = 350;  ///< Height of the image to view [px].
+
+  int imgwidth3 = 115;   ///< Width of the image to view [px].
+  int imgheight3 = 86;  ///< Height of the image to view [px].
 
   VisualizerMode mode = VisualizerMode::GRAPHONLY;  ///< Type of visualizer.
 
@@ -211,6 +218,14 @@ class Visualizer {
    * @param[in] right  Right OpenCV image to be visualized.
    */
   void AddStereo(const cv::Mat& left, const cv::Mat& right);
+
+  /**
+   * @brief Add 3 images to be visualized on screen.
+   * @param[in] img1  first OpenCV image to be visualized.
+   * @param[in] img2  second OpenCV image to be visualized.
+   * @param[in] img3  third OpenCV image to be visualized.
+   */
+  void AddTrio(const cv::Mat& img1, const cv::Mat& img2, const cv::Mat& img3);
 
   /**
    * @brief Get the internal copy of the parameters used for construction.
@@ -356,6 +371,7 @@ class Visualizer {
 
   // OpenCV and image related variables.
   cv::Mat imgL_, imgR_;  ///< Left and right images.
+  cv::Mat img3_;         ///< Third image if needed. 
 
   // For safe threading.
   mutable std::mutex vizmtx_;
