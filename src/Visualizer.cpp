@@ -140,7 +140,7 @@ void Visualizer::RenderWorld() {
       continue;
     }
 
-    vizmtx_.lock();
+    //vizmtx_.lock();
     // Clear screen and activate view to render into
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -219,7 +219,7 @@ void Visualizer::RenderWorld() {
     }
     // Swap frames and Process Events
     pangolin::FinishFrame();
-    vizmtx_.unlock();
+    //vizmtx_.unlock();
   }
 }
 
