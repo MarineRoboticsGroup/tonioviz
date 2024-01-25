@@ -19,11 +19,16 @@ Visualizer::Visualizer(const VisualizerParams& params) : p_(params) {
   // Make sure the images are never null pointers.
   imgL_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
   imgR_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
+  img3_ = cv::Mat(625, 1133, CV_8UC3, cv::Scalar(0, 0, 0));
 
   // Force width and height to be evenly divisible by 4 for Pangolin. See this
   // for more details: https://github.com/stevenlovegrove/Pangolin/issues/590.
-  p_.imgwidth = p_.imgwidth / 4 * 4;
-  p_.imgheight = p_.imgheight / 4 * 4;
+  p_.imgwidth1 = p_.imgwidth1 / 4 * 4;
+  p_.imgheight1 = p_.imgheight1 / 4 * 4;
+  p_.imgwidth2 = p_.imgwidth2 / 4 * 4;
+  p_.imgheight2 = p_.imgheight2 / 4 * 4;
+  p_.imgwidth3 = p_.imgwidth3 / 4 * 4;
+  p_.imgheight3 = p_.imgheight3 / 4 * 4;
 }
 
 /* *************************************************************************  */
@@ -50,9 +55,11 @@ void Visualizer::RenderWorld() {
                               .SetHandler(new pangolin::Handler3D(s_cam));
   // Create the image viewer for either mono or stereo.
   pangolin::View& left_cam =
-      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.05, 0.5);
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.05, 0.3);
   pangolin::View& right_cam =
-      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.5, 0.95);
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.35, 0.6);
+  pangolin::View& third_cam =
+      pangolin::CreateDisplay().SetBounds(0.05, 0.3, 0.65, 0.90);
 
   // Toggle between drawing the origin.
   registerPangolinCallback('z', "Draw the origin and ground plane",
@@ -113,9 +120,17 @@ void Visualizer::RenderWorld() {
   Eigen::Matrix4d I_4x4 = Eigen::Matrix4d::Identity();
 
   // Deal with the images.
-  const int width = p_.imgwidth;    // 672;   // 1133;
-  const int height = p_.imgheight;  // 376;  // 625;
-  pangolin::GlTexture imageTexture(width, height, GL_RGB, false, 0, GL_RGB,
+  const int width1 = p_.imgwidth1;    // 672;   // 1133;
+  const int height1 = p_.imgheight1;  // 376;  // 625;
+  pangolin::GlTexture imageTexture1(width1, height1, GL_RGB, false, 0, GL_RGB,
+                                   GL_UNSIGNED_BYTE);
+  const int width2 = p_.imgwidth2;    // 672;   // 1133;
+  const int height2 = p_.imgheight2;  // 376;  // 625;
+  pangolin::GlTexture imageTexture2(width2, height2, GL_RGB, false, 0, GL_RGB,
+                                   GL_UNSIGNED_BYTE);
+  const int width3 = p_.imgwidth3;    // 672;   // 1133;
+  const int height3 = p_.imgheight3;  // 376;  // 625;
+  pangolin::GlTexture imageTexture3(width3, height3, GL_RGB, false, 0, GL_RGB,
                                    GL_UNSIGNED_BYTE);
 
   while (!pangolin::ShouldQuit()) {
@@ -146,7 +161,7 @@ void Visualizer::RenderWorld() {
       }
     }
     if (vis_state.show_landmark) {
-      DrawLandmarks(landmarks_, p_.landmark_color);
+      DrawLandmarks(landmarks_);
     }
 
     if (vis_state.show_ranges) {
@@ -169,20 +184,38 @@ void Visualizer::RenderWorld() {
 
     // ----------------
     // -- Images.
-    if (p_.mode == VisualizerMode::MONO || p_.mode == VisualizerMode::STEREO) {
+    if (p_.mode == VisualizerMode::MONO || 
+        p_.mode == VisualizerMode::STEREO || 
+        p_.mode == VisualizerMode::TRIO) {
+
       left_cam.Activate();
       glColor3f(1.0, 1.0, 1.0);
 
-      imageTexture.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
-      imageTexture.RenderToViewport();
 
-      if (p_.mode == VisualizerMode::STEREO) {
+      vizmtx_.lock();
+      imageTexture1.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
+      vizmtx_.unlock();
+      imageTexture1.RenderToViewport();
+
+      if (p_.mode == VisualizerMode::STEREO || p_.mode == VisualizerMode::TRIO) {
         right_cam.Activate();
         glColor3f(1.0, 1.0, 1.0);
+        vizmtx_.lock();
+        imageTexture2.Upload(imgR_.data, GL_BGR, GL_UNSIGNED_BYTE);
+        vizmtx_.unlock();
+        imageTexture2.RenderToViewport();
 
-        imageTexture.Upload(imgR_.data, GL_BGR, GL_UNSIGNED_BYTE);
-        imageTexture.RenderToViewport();
+        if (p_.mode == VisualizerMode::TRIO) {
+          third_cam.Activate();
+          glColor3f(1.0, 1.0, 1.0);
+
+          vizmtx_.lock();
+          imageTexture3.Upload(img3_.data, GL_BGR, GL_UNSIGNED_BYTE);
+          vizmtx_.unlock();
+          imageTexture3.RenderToViewport();
+        }
       }
+
     }
     // Swap frames and Process Events
     pangolin::FinishFrame();
@@ -218,7 +251,19 @@ void Visualizer::AddVizPoses(const Trajectory3& poses, const double length,
 /* ************************************************************************** */
 void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
   vizmtx_.lock();
-  for (const auto& vl : landmarks) landmarks_.push_back(vl);
+  for (const auto& vl : landmarks) {
+    landmarks_.push_back(ColorLandmark{vl, p_.landmark_color});
+  }
+  updateXYRange();
+  vizmtx_.unlock();
+}
+
+/* ************************************************************************** */
+void Visualizer::AddVizLandmarks(const std::vector<ColorLandmark>& landmarks) {
+  vizmtx_.lock();
+  for (const auto& vl : landmarks) {
+    landmarks_.push_back(vl);
+  }
   updateXYRange();
   vizmtx_.unlock();
 }
@@ -277,7 +322,7 @@ void Visualizer::AddImage(const cv::Mat& img) {
   cv::Mat img_short;
   img.convertTo(img_short, CV_8UC3);
   // Ensure image is truncated to param height, width.
-  img_short = img_short.rowRange(0, p_.imgheight).colRange(0, p_.imgwidth);
+  img_short = img_short.rowRange(0, p_.imgheight1).colRange(0, p_.imgwidth1);
   cv::flip(img_short.clone(), imgL_, 0);
 }
 
@@ -288,12 +333,31 @@ void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
   right.convertTo(right_short, CV_8UC3);
 
   // Ensure left/right images are truncated to param height, width.
-  left_short = left_short.rowRange(0, p_.imgheight).colRange(0, p_.imgwidth);
-  right_short = right_short.rowRange(0, p_.imgheight).colRange(0, p_.imgwidth);
+  left_short = left_short.rowRange(0, p_.imgheight1).colRange(0, p_.imgwidth1);
+  right_short = right_short.rowRange(0, p_.imgheight2).colRange(0, p_.imgwidth2);
 
   vizmtx_.lock();
   cv::flip(left_short.clone(), imgL_, 0);
   cv::flip(right_short.clone(), imgR_, 0);
+  vizmtx_.unlock();
+}
+
+void Visualizer::AddTrio(const cv::Mat& img1, const cv::Mat& img2, const cv::Mat& img3) {
+  cv::Mat img1_short, img2_short, img3_short;
+  img1.convertTo(img1_short, CV_8UC3);  // Not even sure if this is necessary.
+  img2.convertTo(img2_short, CV_8UC3);
+  img3.convertTo(img3_short, CV_8UC3);
+
+  // Ensure images are truncated to param height, width.
+  img1_short = img1_short.rowRange(0, p_.imgheight1).colRange(0, p_.imgwidth1);
+  img2_short = img2_short.rowRange(0, p_.imgheight2).colRange(0, p_.imgwidth2);
+  img3_short = img3_short.rowRange(0, p_.imgheight3).colRange(0, p_.imgwidth3);
+
+
+  vizmtx_.lock();
+  cv::flip(img1_short.clone(), imgL_, 0);
+  cv::flip(img2_short.clone(), imgR_, 0);
+  cv::flip(img3_short.clone(), img3_, 0);
   vizmtx_.unlock();
 }
 
@@ -354,8 +418,8 @@ void Visualizer::updateXYRange() {
   Eigen::MatrixXd points(num_points, 2);
 
   auto row_idx{0};
-  for (auto& landmark : landmarks_) {
-    points.row(row_idx) << landmark.block(0, 0, 2, 1).transpose();
+  for (auto& landmark : landmarks_){
+    points.row(row_idx) << landmark.lmPos.block(0, 0, 2, 1).transpose();
     row_idx++;
   }
   for (auto& pose_vec : pose_vectors_) {
