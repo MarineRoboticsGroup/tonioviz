@@ -255,6 +255,14 @@ class Visualizer {
    */
   inline bool HasForcedQuit() { return forced_quit_; }
 
+  /**
+   * @brief Set the Ready To Render flag -- this can be used to avoid rendering
+   * partially updated data in a multi-threaded environment
+   *
+   * @param ready
+   */
+  inline void setReadyToRender(bool ready) { ready_to_render_ = ready; }
+
  private:
   /**
    * @brief Renders the trajectory as a sequence of poses.
@@ -375,6 +383,7 @@ class Visualizer {
 
   // For safe threading.
   mutable std::mutex vizmtx_;
+  bool ready_to_render_ = true;
 
   // Frustum rotation to align with +X axis (instead of +Z). Just a rotation of
   // 90deg about +Z, followed by a 90deg rotation about +Y.
