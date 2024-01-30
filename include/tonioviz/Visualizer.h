@@ -213,6 +213,27 @@ class Visualizer {
   void AddImage(const cv::Mat& img);
 
   /**
+   * @brief Add a single image to visualize on top of the estimates. 
+   * For async with multiple images.
+   * @param[in] img  OpenCV image to be visualized.
+   */
+  void AddImage1(const cv::Mat& img);
+
+  /**
+   * @brief Add a single image to visualize on top of the estimates.
+   * For async with multiple images.
+   * @param[in] img  OpenCV image to be visualized.
+   */
+  void AddImage2(const cv::Mat& img);
+
+  /**
+   * @brief Add a single image to visualize on top of the estimates.
+   * For async with multiple images.
+   * @param[in] img  OpenCV image to be visualized.
+   */
+  void AddImage3(const cv::Mat& img);
+
+  /**
    * @brief Add both left and right images to be visualized on screen.
    * @param[in] left   Left OpenCV image to be visualized.
    * @param[in] right  Right OpenCV image to be visualized.

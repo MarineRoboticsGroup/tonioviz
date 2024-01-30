@@ -140,7 +140,7 @@ void Visualizer::RenderWorld() {
       continue;
     }
 
-    //vizmtx_.lock();
+    vizmtx_.lock();
     // Clear screen and activate view to render into
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -192,26 +192,26 @@ void Visualizer::RenderWorld() {
       glColor3f(1.0, 1.0, 1.0);
 
 
-      vizmtx_.lock();
+      //vizmtx_.lock();
       imageTexture1.Upload(imgL_.data, GL_BGR, GL_UNSIGNED_BYTE);
-      vizmtx_.unlock();
+      //vizmtx_.unlock();
       imageTexture1.RenderToViewport();
 
       if (p_.mode == VisualizerMode::STEREO || p_.mode == VisualizerMode::TRIO) {
         right_cam.Activate();
         glColor3f(1.0, 1.0, 1.0);
-        vizmtx_.lock();
+        //vizmtx_.lock();
         imageTexture2.Upload(imgR_.data, GL_BGR, GL_UNSIGNED_BYTE);
-        vizmtx_.unlock();
+        //vizmtx_.unlock();
         imageTexture2.RenderToViewport();
 
         if (p_.mode == VisualizerMode::TRIO) {
           third_cam.Activate();
           glColor3f(1.0, 1.0, 1.0);
 
-          vizmtx_.lock();
+          //vizmtx_.lock();
           imageTexture3.Upload(img3_.data, GL_BGR, GL_UNSIGNED_BYTE);
-          vizmtx_.unlock();
+          //vizmtx_.unlock();
           imageTexture3.RenderToViewport();
         }
       }
@@ -219,7 +219,7 @@ void Visualizer::RenderWorld() {
     }
     // Swap frames and Process Events
     pangolin::FinishFrame();
-    //vizmtx_.unlock();
+    vizmtx_.unlock();
   }
 }
 
@@ -327,6 +327,34 @@ void Visualizer::AddImage(const cv::Mat& img) {
 }
 
 /* *************************************************************************  */
+void Visualizer::AddImage1(const cv::Mat& img) {
+  cv::Mat img_short;
+  img.convertTo(img_short, CV_8UC3);
+  // Ensure image is truncated to param height, width.
+  img_short = img_short.rowRange(0, p_.imgheight1).colRange(0, p_.imgwidth1);
+  cv::flip(img_short.clone(), imgL_, 0);
+}
+
+/* *************************************************************************  */
+void Visualizer::AddImage2(const cv::Mat& img) {
+  cv::Mat img_short;
+  img.convertTo(img_short, CV_8UC3);
+  // Ensure image is truncated to param height, width.
+  img_short = img_short.rowRange(0, p_.imgheight2).colRange(0, p_.imgwidth2);
+  cv::flip(img_short.clone(), imgR_, 0);
+}
+
+/* *************************************************************************  */
+void Visualizer::AddImage3(const cv::Mat& img) {
+  cv::Mat img_short;
+  img.convertTo(img_short, CV_8UC3);
+  // Ensure image is truncated to param height, width.
+  img_short = img_short.rowRange(0, p_.imgheight3).colRange(0, p_.imgwidth3);
+  cv::flip(img_short.clone(), img3_, 0);
+}
+
+
+/* *************************************************************************  */
 void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
   cv::Mat left_short, right_short;
   left.convertTo(left_short, CV_8UC3);  // Not even sure if this is necessary.
@@ -336,10 +364,10 @@ void Visualizer::AddStereo(const cv::Mat& left, const cv::Mat& right) {
   left_short = left_short.rowRange(0, p_.imgheight1).colRange(0, p_.imgwidth1);
   right_short = right_short.rowRange(0, p_.imgheight2).colRange(0, p_.imgwidth2);
 
-  vizmtx_.lock();
+  //vizmtx_.lock();
   cv::flip(left_short.clone(), imgL_, 0);
   cv::flip(right_short.clone(), imgR_, 0);
-  vizmtx_.unlock();
+  //vizmtx_.unlock();
 }
 
 void Visualizer::AddTrio(const cv::Mat& img1, const cv::Mat& img2, const cv::Mat& img3) {
@@ -354,11 +382,11 @@ void Visualizer::AddTrio(const cv::Mat& img1, const cv::Mat& img2, const cv::Mat
   img3_short = img3_short.rowRange(0, p_.imgheight3).colRange(0, p_.imgwidth3);
 
 
-  vizmtx_.lock();
+  //vizmtx_.lock();
   cv::flip(img1_short.clone(), imgL_, 0);
   cv::flip(img2_short.clone(), imgR_, 0);
   cv::flip(img3_short.clone(), img3_, 0);
-  vizmtx_.unlock();
+  //vizmtx_.unlock();
 }
 
 void Visualizer::DrawHelp() const {
