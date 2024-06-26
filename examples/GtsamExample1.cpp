@@ -59,7 +59,8 @@ void DataPlaybackLoop(mrg::Visualizer *viz) {
     const double y = GetRandDouble(-10, 10);
     const double r = GetRandDouble(1, 10);
 
-    mrg::Range c = {x, y, r};
+    Eigen::Vector3d p = {x, y, 0};
+    mrg::Range c = {p, r};
     viz->AddRangeMeasurement(c);
 
     std::this_thread::sleep_for(std::chrono::nanoseconds(50000000));

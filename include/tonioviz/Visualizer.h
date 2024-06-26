@@ -54,17 +54,24 @@ enum class RangeDrawType { kCircle, kLine };
  * @brief Struct to hold circles with radius `r` for drawing at (`x`,`y`).
  */
 struct Range {
-  double x;
-  double y;
+  Eigen::Vector3d p1;
   double r;
 
   // Optional params for drawing as a line
-  std::pair<double, double> p2;
+  Eigen::Vector3d p2;
   bool has_p2;
 
-  Range(double x, double y, double r) : x(x), y(y), r(r), has_p2(false){};
-  Range(double x, double y, double r, double x2, double y2)
-      : x(x), y(y), r(r), p2(std::make_pair(x2, y2)), has_p2(true){};
+  Range(Eigen::Vector3d p1, double r) : p1(p1), r(r), has_p2(false){};
+  Range(Eigen::Vector3d p1, Eigen::Vector3d p2, double r)
+      : p1(p1), r(r), p2(p2), has_p2(true){};
+
+  Eigen::Vector3d getDirection() const {
+    if (has_p2) {
+      return (p2 - p1).normalized();
+    } else {
+      throw std::runtime_error("No direction for range without p2");
+    }
+  }
 };
 
 /**
@@ -278,14 +285,12 @@ class Visualizer {
   inline void DrawRange(Range c, Color color) const {
     glColor3f(color.r, color.g, color.b);
     if (p_.rangetype == RangeDrawType::kCircle) {
-      pangolin::glDrawCirclePerimeter(c.x, c.y, c.r);
+      pangolin::glDrawCirclePerimeter(c.p1.x(), c.p1.y(), c.r);
     } else if (p_.rangetype == RangeDrawType::kLine && c.has_p2) {
-      Eigen::Vector2d p2_vec(c.p2.first, c.p2.second);
-      Eigen::Vector2d c_vec(c.x, c.y);
-      // Set the length of the line to be the range
-      Eigen::Vector2d p2_with_range((p2_vec - c_vec).normalized() * c.r +
-                                    c_vec);
-      pangolin::glDrawLine(c.x, c.y, p2_with_range.x(), p2_with_range.y());
+      Eigen::Vector3d range_dir = c.getDirection();
+      Eigen::Vector3d p2_with_range = c.p1 + range_dir * c.r;
+      pangolin::glDrawLine(c.p1.x(), c.p1.y(), c.p1.z(), p2_with_range.x(),
+                           p2_with_range.y(), p2_with_range.z());
     } else {
       throw std::runtime_error(
           "Attempted range visualization is not supported");
