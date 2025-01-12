@@ -39,6 +39,20 @@ struct Color {
   double b;
 };
 
+// premade list of colors to cycle through for different trajectories
+const std::vector<Color> kTrajectoryColors = {
+    {0.0, 0.0, 1.0},  // Blue
+    {0.0, 1.0, 0.0},  // Green
+    {1.0, 0.0, 0.0},  // Red
+    {1.0, 0.0, 1.0},  // Magenta
+    {0.0, 1.0, 1.0},  // Cyan
+    {1.0, 1.0, 0.0},  // Yellow
+    {0.5, 0.5, 0.5},  // Gray
+    {1.0, 0.5, 0.0},  // Orange
+    {0.5, 0.0, 1.0},  // Purple
+    {0.0, 0.5, 1.0}   // Light Blue
+};
+
 /**
  * @brief Type of visualization modes available.
  */
@@ -61,9 +75,9 @@ struct Range {
   Eigen::Vector3d p2;
   bool has_p2;
 
-  Range(Eigen::Vector3d p1, double r) : p1(p1), r(r), has_p2(false){};
+  Range(Eigen::Vector3d p1, double r) : p1(p1), r(r), has_p2(false) {};
   Range(Eigen::Vector3d p1, Eigen::Vector3d p2, double r)
-      : p1(p1), r(r), p2(p2), has_p2(true){};
+      : p1(p1), r(r), p2(p2), has_p2(true) {};
 
   Eigen::Vector3d getDirection() const {
     if (has_p2) {
@@ -95,6 +109,7 @@ struct VisualizerParams {
 
   Color landmark_color{1.0, 0, 0};
   Color range_color{0, 1.0, 0};
+  Color bg_color{1.0, 1.0, 1.0};  // background color
 };
 
 struct VisualizerState {
@@ -104,6 +119,8 @@ struct VisualizerState {
   bool show_ranges = true;
   bool show_only_latest = false;
   bool show_z0 = true;
+  bool rotate_around_z = false;
+  bool show_just_traj_lines = false; // no frustrums or triads
 };
 
 /**
@@ -241,26 +258,36 @@ class Visualizer {
    * @param[in] trajectory  Eigen-aligned vector of 3D poses.
    */
   void DrawTrajectory(const Trajectory3& trajectory,
-                      const double axesLength = 0.2) const;
+                      const double axesLength = 0.2, uint traj_idx = 0) const;
 
   /**
    * @brief Overload to render a trajectory of pose tuples.
    * @param[in] trajectory  Eigen-aligned vector of visualization pose tuples.
    */
-  void DrawTrajectory(const std::vector<VizPose>& trajectory) const;
+  void DrawTrajectory(const std::vector<VizPose>& trajectory,
+                      uint traj_idx = 0) const;
 
   inline void DrawLandmarks(const std::vector<VizLandmark>& landmarks,
                             Color color = Color{1, 0, 0}) const {
     // Draw all landmarks
     glColor3f(color.r, color.g, color.b);
     glLineWidth(2.0);
-    double rad = 0.25;
+
+    // get the xy range of the viewer
+    double x_min = xy_range_(0);
+    double x_max = xy_range_(2);
+    double y_min = xy_range_(1);
+    double y_max = xy_range_(3);
+    auto largest_range = std::max(x_max - x_min, y_max - y_min);
+
+    // landmark radius should be a percentage of the largest of the x or y range
+    double rad = largest_range * 0.02;
     if (p_.landtype == LandmarkDrawType::kCross) {
       for (const VizLandmark& vl : landmarks) {
         pangolin::glDrawCross(vl, rad);
       }
     } else if (p_.landtype == LandmarkDrawType::kPoint) {
-      glPointSize(2.0);
+      glPointSize(rad);
       pangolin::glDrawPoints(landmarks);
     } else {
       std::cerr << "Attempted landmark visualization is not supported"

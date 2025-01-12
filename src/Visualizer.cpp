@@ -61,6 +61,10 @@ void Visualizer::RenderWorld() {
   registerPangolinCallback('l', "Show only the latest pose", [&]() {
     vis_state.show_only_latest = !vis_state.show_only_latest;
   });
+  // toggle between drawing any keyframes as frustums or triads.
+  registerPangolinCallback('o', "Show only trajectory lines", [&]() {
+    vis_state.show_just_traj_lines = !vis_state.show_just_traj_lines;
+  });
   // Toggle between types of keyframes
   registerPangolinCallback('k', "Toggle between Frustum or Triad keyframes",
                            [&]() {
@@ -70,11 +74,13 @@ void Visualizer::RenderWorld() {
                                p_.kftype = KeyframeDrawType::kFrustum;
                              }
                            });
-  registerPangolinCallback('q', "Quit", [&]() {
-    pangolin::QuitAll();
-    pangolin::DestroyWindow(_window_name);
-    forced_quit_ = true;
-  });
+
+  // it is more graceful to quit using the pangolin interface (esc key)
+  // registerPangolinCallback('q', "Quit", [&]() {
+  //   pangolin::QuitAll();
+  //   pangolin::DestroyWindow(_window_name);
+  //   forced_quit_ = true;
+  // });
 
   registerPangolinCallback('t', "Show trajectory", [&]() {
     vis_state.show_traj = !vis_state.show_traj;
@@ -107,6 +113,17 @@ void Visualizer::RenderWorld() {
         view_center(0), view_center(1), z, view_center(0), view_center(1), 0.0,
         pangolin::AxisX));
   });
+  registerPangolinCallback('v', "View from the top", [&]() {
+    // set view to be from the top and to be looking down
+    // because of the error: 'Look' and 'up' vectors cannot be parallel when
+    // calling ModelViewLookAt. we need to add a small offset to the lookAt
+    // point
+    s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(
+        0.0, 0.0, 1.0, 0.05, 0.05, 0.00, pangolin::AxisZ));
+  });
+  registerPangolinCallback('s', "Rotate view around z axis", [&]() {
+    vis_state.rotate_around_z = !vis_state.rotate_around_z;
+  });
   // Manage the size of the points.
   glPointSize(3.5);  // Default is 1.
   // Useful identity.
@@ -136,13 +153,13 @@ void Visualizer::RenderWorld() {
     // -- 3D view.
     d_cam.Activate(s_cam);
     // Background color.
-    glClearColor(0.9f, 0.9f, 0.9f, 0.0f);
+    glClearColor(p_.bg_color.r, p_.bg_color.g, p_.bg_color.b, 1.0);
     // Default line width.
     glLineWidth(1.0);
 
     if (vis_state.show_traj) {
       for (uint i = 0; i < pose_vectors_.size(); i++) {
-        DrawTrajectory(pose_vectors_[i]);
+        DrawTrajectory(pose_vectors_[i], i);
       }
     }
     if (vis_state.show_landmark) {
@@ -151,6 +168,11 @@ void Visualizer::RenderWorld() {
 
     if (vis_state.show_ranges) {
       DrawRanges(ranges_, p_.range_color);
+    }
+
+    if (vis_state.rotate_around_z) {
+      s_cam.SetModelViewMatrix(s_cam.GetModelViewMatrix() *
+                               pangolin::OpenGlMatrix::RotateZ(0.01));
     }
 
     s_cam.Apply();
@@ -225,7 +247,7 @@ void Visualizer::AddVizLandmarks(const std::vector<VizLandmark>& landmarks) {
 
 /* ************************************************************************** */
 void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
-                                const double axesLength) const {
+                                const double axesLength, uint traj_idx) const {
   std::vector<Eigen::Vector3d> positions;
 
   // Draw all poses.
@@ -244,7 +266,8 @@ void Visualizer::DrawTrajectory(const Trajectory3& trajectory,
 }
 
 /* *************************************************************************  */
-void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
+void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory,
+                                uint traj_idx) const {
   std::vector<Eigen::Vector3d> positions;
 
   // Draw all keyframes and get all positions.
@@ -252,24 +275,36 @@ void Visualizer::DrawTrajectory(const std::vector<VizPose>& trajectory) const {
   for (const VizPose& vp : trajectory) {
     if (!vis_state.show_only_latest || vp == trajectory.back()) {
       glLineWidth(std::get<2>(vp));
-      if (p_.kftype == KeyframeDrawType::kFrustum) {
-        Eigen::Matrix4d Twf = std::get<0>(vp) * T_frustum_;
-        pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, Twf,
-                                p_.frustum_scale);
-      } else if (p_.kftype == KeyframeDrawType::kTriad) {
-        pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
+
+      // draw keyframes if not just drawing trajectory lines
+      if (!vis_state.show_just_traj_lines) {
+        if (p_.kftype == KeyframeDrawType::kFrustum) {
+          Eigen::Matrix4d Twf = std::get<0>(vp) * T_frustum_;
+          pangolin::glDrawFrustum(K_frustum_, frustum_w_, frustum_h_, Twf,
+                                  p_.frustum_scale);
+        } else if (p_.kftype == KeyframeDrawType::kTriad) {
+          pangolin::glDrawAxis(std::get<0>(vp), std::get<1>(vp));
+        }
       }
       glLineWidth(1.0);
     }
     positions.emplace_back(std::get<0>(vp).block<3, 1>(0, 3));
   }
 
-  // Draw a line connecting all poses.
-  glColor4f(0.7, 0.7, 0.7, 0.1);
+  // draw a colored line connecting all poses
+  auto traj_color = kTrajectoryColors[traj_idx % kTrajectoryColors.size()];
+  glColor3f(traj_color.r, traj_color.g, traj_color.b);
   glLineWidth(3.0);
   pangolin::glDrawLineStrip(positions);
-  glLineWidth(1.0);
-  glColor3f(1.0, 1.0, 1.0);
+  glLineWidth(1.0);          // Reset line width.
+  glColor3f(1.0, 1.0, 1.0);  // Reset color.
+
+  // Draw a line connecting all poses.
+  // glColor4f(0.7, 0.7, 0.7, 0.1);
+  // glLineWidth(3.0);
+  // pangolin::glDrawLineStrip(positions);
+  // glLineWidth(1.0);
+  // glColor3f(1.0, 1.0, 1.0);
 }
 
 /* *************************************************************************  */
@@ -317,6 +352,9 @@ void Visualizer::DrawHelp() const {
           .DrawWindow(10, height);
       height += 20;
     }
+    pangolin::default_font()
+        .Text(std::string{"esc: exit the viewer"})
+        .DrawWindow(10, height);
   } else {
     // pangolin::GlFont::I()
     //     .Text(std::string{"Press 'h' to show help message"})
